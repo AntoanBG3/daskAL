@@ -66,7 +66,7 @@ namespace SchoolManagementSystem
     public class UchilishtenMenadzhar
     {
         private const string FAIL_DANNI = "uchilishtni_danni.json";
-        private UchilishtnaBazaDanni bazaDanni;
+        private UchilishtnaBazaDanni bazaDanni = new(); // Fixed: Initialize the field
 
         public UchilishtenMenadzhar()
         {
@@ -344,7 +344,7 @@ namespace SchoolManagementSystem
                     UchitelId = uchitelId
                 };
                 
-                uchilishtenMenadzhar.DobaviBredmet(novPredmet);
+                uchilishtenMenadzhar.DobaviPredmet(novPredmet); // Fixed: Corrected method name
             }
             else
             {
@@ -376,12 +376,12 @@ namespace SchoolManagementSystem
                 return;
             }
             
-            string predmet = VzemiVhavodOtPotrebitel("Предмет: ");
+            string imePredmet = VzemiVhavodOtPotrebitel("Предмет: "); // Fixed: Renamed variable to avoid conflict
             
             Console.Write("Оценка (2-6): ");
             if (int.TryParse(Console.ReadLine(), out int ocenka) && ocenka >= 2 && ocenka <= 6)
             {
-                uchilishtenMenadzhar.ZapishiOcenka(uchenikId, predmet, ocenka);
+                uchilishtenMenadzhar.ZapishiOcenka(uchenikId, imePredmet, ocenka);
             }
             else
             {
