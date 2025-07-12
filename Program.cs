@@ -53,7 +53,7 @@ namespace SchoolManagementSystem
         public int Id { get; set; }
         public string Ime { get; set; } = "";
         public string Opisanie { get; set; } = "";
-        public int UchitelId { get; set; }
+        public int? UchitelId { get; set; }
     }
 
     public class UchilishtnaBazaDanni
@@ -147,6 +147,12 @@ namespace SchoolManagementSystem
                 return false;
             }
 
+            if (!bazaDanni.Predmeti.Any(p => p.Ime.Equals(imePredmet, StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine($"❌ Предмет '{imePredmet}' не е намерен! Моля, първо добавете предмета.");
+                return false;
+            }
+
             if (!uchenik.PredmetiOcenki.ContainsKey(imePredmet))
             {
                 uchenik.PredmetiOcenki[imePredmet] = new List<int>();
@@ -159,6 +165,14 @@ namespace SchoolManagementSystem
 
         public bool NaznachPredmetNaUchitel(int uchitelId, string imePredmet)
         {
+            // Проверка дали предметът съществува в базата данни
+            var predmet = bazaDanni.Predmeti.FirstOrDefault(p => p.Ime.Equals(imePredmet, StringComparison.OrdinalIgnoreCase));
+            if (predmet == null)
+            {
+                Console.WriteLine($"❌ Предмет '{imePredmet}' не е намерен! Моля, първо добавете предмета от главното меню.");
+                return false;
+            }
+
             var uchitel = bazaDanni.Uchiteli.FirstOrDefault(u => u.Id == uchitelId);
             if (uchitel == null)
             {
@@ -171,7 +185,9 @@ namespace SchoolManagementSystem
                 Console.WriteLine($"❌ Учителят {uchitel.PulnoIme} вече преподава {imePredmet}!");
                 return false;
             }
-
+            
+            // Assign subject to teacher and teacher to subject
+            predmet.UchitelId = uchitelId;
             uchitel.PredavashtePredmeti.Add(imePredmet);
             Console.WriteLine($"✅ Предмет '{imePredmet}' е назначен на учител {uchitel.PulnoIme}");
             return true;
@@ -194,13 +210,21 @@ namespace SchoolManagementSystem
             }
 
             uchitel.PredavashtePredmeti.Remove(predmetZaPremahvane);
+            
+            // Also unassign teacher from subject
+            var predmet = bazaDanni.Predmeti.FirstOrDefault(p => p.Ime.Equals(imePredmet, StringComparison.OrdinalIgnoreCase));
+            if (predmet != null && predmet.UchitelId == uchitelId)
+            {
+                predmet.UchitelId = null;
+            }
+
             Console.WriteLine($"✅ Предмет '{imePredmet}' е премахнат от учител {uchitel.PulnoIme}");
             return true;
         }
 
-        private int VzemiSlvashtoIdUchenik() => bazaDanni.Uchenici.Count > 0 ? bazaDanni.Uchenici.Max(u => u.Id) + 1 : 1;
-        private int VzemiSlvashtoIdUchitel() => bazaDanni.Uchiteli.Count > 0 ? bazaDanni.Uchiteli.Max(u => u.Id) + 1 : 1;
-        private int VzemiSlvashtoIdPredmet() => bazaDanni.Predmeti.Count > 0 ? bazaDanni.Predmeti.Max(p => p.Id) + 1 : 1;
+        private int VzemiSlvashtoIdUchenik() => bazaDanni.Uchenici.Any() ? bazaDanni.Uchenici.Max(u => u.Id) + 1 : 1;
+        private int VzemiSlvashtoIdUchitel() => bazaDanni.Uchiteli.Any() ? bazaDanni.Uchiteli.Max(u => u.Id) + 1 : 1;
+        private int VzemiSlvashtoIdPredmet() => bazaDanni.Predmeti.Any() ? bazaDanni.Predmeti.Max(p => p.Id) + 1 : 1;
 
         public List<Student> VzemiVsichkiUchenici() => bazaDanni.Uchenici.ToList();
         public List<Teacher> VzemiVsichkiUchiteli() => bazaDanni.Uchiteli.ToList();
@@ -212,7 +236,7 @@ namespace SchoolManagementSystem
 
     class Program
     {
-        private static UchilishtenMenadzhar uchilishtenMenadzhar = new();
+        private static readonly UchilishtenMenadzhar uchilishtenMenadzhar = new();
 
         static void Main(string[] args)
         {
@@ -353,7 +377,6 @@ namespace SchoolManagementSystem
             };
             
             uchilishtenMenadzhar.RegistrirajUchitel(novUchitel);
-            Console.WriteLine("💡 Може да назначите предмети на учителя по-късно от главното меню (опция 9).");
         }
 
         private static void DobaviNovPredmet()
@@ -362,36 +385,21 @@ namespace SchoolManagementSystem
             
             string imePredmet = VzemiVhavodOtPotrebitel("Име на предмет: ");
             string opisanie = VzemiVhavodOtPotrebitel("Описание: ");
-            
-            var uchiteli = uchilishtenMenadzhar.VzemiVsichkiUchiteli();
-            if (!uchiteli.Any())
+
+            if (uchilishtenMenadzhar.VzemiVsichkiPredmeti().Any(p => p.Ime.Equals(imePredmet, StringComparison.OrdinalIgnoreCase)))
             {
-                Console.WriteLine("❌ Няма налични учители. Моля, първо добавете учители.");
+                Console.WriteLine($"❌ Предмет с име '{imePredmet}' вече съществува.");
                 return;
             }
             
-            Console.WriteLine("\nНалични учители:");
-            foreach (var uchitel in uchiteli)
+            var novPredmet = new Subject
             {
-                Console.WriteLine($"{uchitel.Id}. {uchitel.PulnoIme}");
-            }
+                Ime = imePredmet,
+                Opisanie = opisanie
+            };
             
-            Console.Write("ID на учител: ");
-            if (int.TryParse(Console.ReadLine(), out int uchitelId))
-            {
-                var novPredmet = new Subject
-                {
-                    Ime = imePredmet,
-                    Opisanie = opisanie,
-                    UchitelId = uchitelId
-                };
-                
-                uchilishtenMenadzhar.DobaviPredmet(novPredmet);
-            }
-            else
-            {
-                Console.WriteLine("❌ Невалиден ID на учител!");
-            }
+            uchilishtenMenadzhar.DobaviPredmet(novPredmet);
+            Console.WriteLine("💡 Можете да назначите учител на този предмет по-късно от менюто (опция 9).");
         }
 
         private static void ZapishiOcenkaNaUchenik()
@@ -434,23 +442,30 @@ namespace SchoolManagementSystem
         private static void NaznachPredmetNaUchitel()
         {
             Console.WriteLine("\n👨‍🏫 Назначаване на предмет на учител...");
-            
+
             var uchiteli = uchilishtenMenadzhar.VzemiVsichkiUchiteli();
             if (!uchiteli.Any())
             {
                 Console.WriteLine("❌ Няма налични учители. Моля, първо добавете учители.");
                 return;
             }
-            
+
+            var predmeti = uchilishtenMenadzhar.VzemiVsichkiPredmeti();
+            if (!predmeti.Any())
+            {
+                Console.WriteLine("❌ Няма налични предмети. Моля, първо добавете предмети.");
+                return;
+            }
+
             Console.WriteLine("\nУчители:");
             foreach (var uchitel in uchiteli)
             {
-                string predmeti = uchitel.PredavashtePredmeti.Any() 
+                string predavashti = uchitel.PredavashtePredmeti.Any()
                     ? string.Join(", ", uchitel.PredavashtePredmeti)
                     : "Няма назначени предмети";
-                Console.WriteLine($"{uchitel.Id}. {uchitel.PulnoIme} ({predmeti})");
+                Console.WriteLine($"{uchitel.Id}. {uchitel.PulnoIme} ({predavashti})");
             }
-            
+
             Console.Write("ID на учител: ");
             if (!int.TryParse(Console.ReadLine(), out int uchitelId))
             {
@@ -458,8 +473,14 @@ namespace SchoolManagementSystem
                 return;
             }
             
-            string imePredmet = VzemiVhavodOtPotrebitel("Име на предмет: ");
-            
+            Console.WriteLine("\nНалични предмети:");
+            foreach (var predmet in predmeti)
+            {
+                Console.WriteLine($"- {predmet.Ime}");
+            }
+
+            string imePredmet = VzemiVhavodOtPotrebitel("Име на предмет за назначаване: ");
+
             uchilishtenMenadzhar.NaznachPredmetNaUchitel(uchitelId, imePredmet);
         }
 
@@ -474,7 +495,6 @@ namespace SchoolManagementSystem
                 return;
             }
             
-            // Показване само на учители с предмети
             var uchiteliSPredmeti = uchiteli.Where(u => u.PredavashtePredmeti.Any()).ToList();
             if (!uchiteliSPredmeti.Any())
             {
@@ -586,7 +606,7 @@ namespace SchoolManagementSystem
             
             foreach (var predmet in predmeti)
             {
-                var uchitel = uchiteli.FirstOrDefault(u => u.Id == predmet.UchitelId);
+                var uchitel = predmet.UchitelId.HasValue ? uchiteli.FirstOrDefault(u => u.Id == predmet.UchitelId.Value) : null;
                 Console.WriteLine($"\n📋 ID: {predmet.Id}");
                 Console.WriteLine($"📖 Предмет: {predmet.Ime}");
                 Console.WriteLine($"📝 Описание: {predmet.Opisanie}");
