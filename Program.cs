@@ -131,7 +131,7 @@ namespace SchoolManagementSystem
             Console.WriteLine($"✅ Учител {uchitel.PulnoIme} е регистриран успешно!");
         }
 
-        public void DobaviBredmet(Subject predmet)
+        public void DobaviPredmet(Subject predmet)
         {
             predmet.Id = VzemiSlvashtoIdPredmet();
             bazaDanni.Predmeti.Add(predmet);
