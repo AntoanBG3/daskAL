@@ -263,7 +263,7 @@ namespace SchoolManagementSystem
 
         private static void PokasjiPozdravitelnoSaobshtenie()
         {
-            Console.WriteLine("🏫 Добре дошли в Системата за Управление на Училище!");
+            Console.WriteLine("🏫 Добре дошли в daskAL!");
             Console.WriteLine("Тази система ви помага да управлявате ученици, учители и оценки.");
             Console.WriteLine("Нека започнем!\n");
         }
@@ -675,7 +675,7 @@ namespace SchoolManagementSystem
                 uchilishtenMenadzhar.ZapaziBazaDanni();
             }
             
-            Console.WriteLine("👋 Благодарим ви, че използвате Системата за Управление на Училище!");
+            Console.WriteLine("👋 Благодарим ви, че използвате daskAL");
             Console.WriteLine("Приятен ден!");
         }
 
