@@ -6,6 +6,7 @@ using System.Text.Json;
 
 namespace SchoolManagementSystem
 {
+    // Прости модели, които представляват реални обекти
     public class Student
     {
         public int Id { get; set; }
@@ -164,6 +165,7 @@ namespace SchoolManagementSystem
 
         public bool NaznachPredmetNaUchitel(int uchitelId, string imePredmet)
         {
+            // Проверка дали предметът съществува в базата данни
             var predmet = bazaDanni.Predmeti.FirstOrDefault(p => p.Ime.Equals(imePredmet, StringComparison.OrdinalIgnoreCase));
             if (predmet == null)
             {
@@ -184,6 +186,7 @@ namespace SchoolManagementSystem
                 return false;
             }
             
+            // Assign subject to teacher and teacher to subject
             predmet.UchitelId = uchitelId;
             uchitel.PredavashtePredmeti.Add(imePredmet);
             Console.WriteLine($"✅ Предмет '{imePredmet}' е назначен на учител {uchitel.PulnoIme}");
@@ -208,6 +211,7 @@ namespace SchoolManagementSystem
 
             uchitel.PredavashtePredmeti.Remove(predmetZaPremahvane);
             
+            // Also unassign teacher from subject
             var predmet = bazaDanni.Predmeti.FirstOrDefault(p => p.Ime.Equals(imePredmet, StringComparison.OrdinalIgnoreCase));
             if (predmet != null && predmet.UchitelId == uchitelId)
             {
@@ -666,4 +670,19 @@ namespace SchoolManagementSystem
             Console.Write("💾 Да се запазят данните преди изход? (д/н): ");
             string? izborZapazi = Console.ReadLine()?.ToLower();
             
-            if (izborZapazi == "д" || izborZapazi == "да
+            if (izborZapazi == "д" || izborZapazi == "да")
+            {
+                uchilishtenMenadzhar.ZapaziBazaDanni();
+            }
+            
+            Console.WriteLine("👋 Благодарим ви, че използвате daskAL");
+            Console.WriteLine("Приятен ден!");
+        }
+
+        private static string VzemiVhavodOtPotrebitel(string podbuda)
+        {
+            Console.Write(podbuda);
+            return Console.ReadLine()?.Trim() ?? "";
+        }
+    }
+}
