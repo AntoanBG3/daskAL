@@ -1,0 +1,64 @@
+@page "/subjects"
+@inject SchoolService SchoolService
+
+<PageTitle>Subjects</PageTitle>
+
+<h1>Subjects</h1>
+
+<p>List of available subjects.</p>
+
+<div class="mb-3">
+    <!-- Future: Add Subject functionality -->
+    <button class="btn btn-primary" disabled>Add New Subject (Coming Soon)</button>
+</div>
+
+@if (subjects == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Teacher</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var subject in subjects)
+            {
+                <tr>
+                    <td>@subject.Id</td>
+                    <td>@subject.Name</td>
+                    <td>@subject.Description</td>
+                    <td>
+                        @if (subject.Teacher != null)
+                        {
+                            @subject.Teacher.FullName
+                        }
+                        else
+                        {
+                            <span class="text-muted">Unassigned</span>
+                        }
+                    </td>
+                    <td>
+                        <a href="/subjects/edit/@subject.Id" class="btn btn-sm btn-primary">Edit / Assign Teacher</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Subject>? subjects;
+
+    protected override async Task OnInitializedAsync()
+    {
+        subjects = await SchoolService.GetAllSubjectsAsync();
+    }
+}

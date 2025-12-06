@@ -1,0 +1,58 @@
+@page "/teachers"
+@inject SchoolService SchoolService
+
+<PageTitle>Teachers</PageTitle>
+
+<h1>Teachers</h1>
+
+<p>List of teachers and their assigned subjects.</p>
+
+<div class="mb-3">
+    <!-- Future: Add Teacher functionality -->
+    <button class="btn btn-primary" disabled>Add New Teacher (Coming Soon)</button>
+</div>
+
+@if (teachers == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Subjects</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var teacher in teachers)
+            {
+                <tr>
+                    <td>@teacher.Id</td>
+                    <td>@teacher.FullName</td>
+                    <td>
+                        @if (teacher.TeachingSubjects.Any())
+                        {
+                            <span>@string.Join(", ", teacher.TeachingSubjects.Select(s => s.Name))</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No subjects assigned</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Teacher>? teachers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        teachers = await SchoolService.GetAllTeachersAsync();
+    }
+}

@@ -1,0 +1,72 @@
+@page "/subjects/edit/{Id:int}"
+@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject NavigationManager NavigationManager
+@using SchoolManagementSystem.Web.Models
+
+<h3>Edit Subject</h3>
+
+@if (subject == null || teachers == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="@subject" OnValidSubmit="HandleValidSubmit" FormName="EditSubjectForm">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label for="name" class="form-label">Subject Name</label>
+            <InputText id="name" class="form-control" @bind-Value="subject.Name" />
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <InputText id="description" class="form-control" @bind-Value="subject.Description" />
+        </div>
+
+        <div class="mb-3">
+            <label for="teacher" class="form-label">Assigned Teacher</label>
+            <InputSelect id="teacher" class="form-select" @bind-Value="subject.TeacherId">
+                <option value="">-- Unassigned --</option>
+                @foreach (var teacher in teachers)
+                {
+                    <option value="@teacher.Id">@teacher.FullName</option>
+                }
+            </InputSelect>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="/subjects" class="btn btn-secondary">Cancel</a>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Subject? subject { get; set; }
+    
+    private List<Teacher>? teachers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        teachers = await SchoolService.GetAllTeachersAsync();
+        
+        if (subject == null)
+        {
+            subject = await SchoolService.GetSubjectByIdAsync(Id);
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (subject != null)
+        {
+            // If TeacherId is set, EF Core relationship will update accordingly.
+            await SchoolService.UpdateSubjectAsync(subject);
+            NavigationManager.NavigateTo("/subjects");
+        }
+    }
+}

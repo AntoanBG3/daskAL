@@ -1,0 +1,116 @@
+@page "/grades"
+@inject SchoolService SchoolService
+@inject NavigationManager Navigation
+
+<PageTitle>Grades</PageTitle>
+
+<h1>Student Grades</h1>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <label class="form-label">Select Student:</label>
+        <select class="form-select" @onchange="LoadStudentGrades">
+            <option value="">-- Select Student --</option>
+            @if (students != null)
+            {
+                foreach (var s in students)
+                {
+                    <option value="@s.Id">@s.FullName (@s.Class)</option>
+                }
+            }
+        </select>
+    </div>
+</div>
+
+@if (selectedStudent != null)
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Grades for @selectedStudent.FullName</h4>
+        </div>
+        <div class="card-body">
+            @if (selectedStudent.Grades.Any())
+            {
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Grade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var grade in selectedStudent.Grades)
+                        {
+                            <tr>
+                                <td>@grade.SubjectName</td>
+                                <td>@grade.Value</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>No grades recorded yet.</p>
+            }
+
+            <hr />
+            <h5>Record New Grade</h5>
+            <EditForm Model="@newGrade" OnValidSubmit="HandleAddGrade" FormName="AddGradeForm">
+                <DataAnnotationsValidator />
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label">Subject</label>
+                        <InputText class="form-control" @bind-Value="newGrade.SubjectName" placeholder="e.g. Math" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Grade (2-6)</label>
+                        <InputNumber class="form-control" @bind-Value="newGrade.Value" min="2" max="6" />
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success">Add</button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Student>? students;
+    private Student? selectedStudent;
+    
+    [SupplyParameterFromForm]
+    private Grade newGrade { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        students = await SchoolService.GetAllStudentsAsync();
+    }
+
+    private async Task LoadStudentGrades(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int studentId))
+        {
+            selectedStudent = await SchoolService.GetStudentByIdAsync(studentId);
+            newGrade = new Grade { StudentId = studentId, Value = 6 }; // Reset form
+        }
+        else
+        {
+            selectedStudent = null;
+        }
+    }
+
+    private async Task HandleAddGrade()
+    {
+        if (selectedStudent != null)
+        {
+            newGrade.StudentId = selectedStudent.Id;
+            await SchoolService.AddGradeAsync(newGrade);
+            
+            // Refresh
+            selectedStudent = await SchoolService.GetStudentByIdAsync(selectedStudent.Id);
+            newGrade = new Grade { StudentId = selectedStudent!.Id, Value = 6, SubjectName = "" };
+        }
+    }
+}

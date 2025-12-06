@@ -1,0 +1,79 @@
+﻿@page "/"
+
+<PageTitle>School Dashboard</PageTitle>
+
+<div class="container mt-5">
+    <div class="row text-center mb-5">
+        <div class="col">
+            <h1 class="display-4 fw-bold text-primary">Welcome to daskAL</h1>
+            <p class="lead text-muted">Manage your school efficiently with our modern web platform.</p>
+        </div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <!-- Students Card -->
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm border-0 hover-effect">
+                <div class="card-body text-center">
+                    <div class="fs-1 text-primary mb-3">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Students</h5>
+                    <p class="card-text text-muted small">Manage student profiles, registrations, and details.</p>
+                    <a href="students" class="btn btn-outline-primary stretched-link">View Students</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teachers Card -->
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm border-0 hover-effect">
+                <div class="card-body text-center">
+                    <div class="fs-1 text-success mb-3">
+                        <i class="bi bi-person-badge-fill"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Teachers</h5>
+                    <p class="card-text text-muted small">View teachers and assign their subjects.</p>
+                    <a href="teachers" class="btn btn-outline-success stretched-link">View Teachers</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subjects Card -->
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm border-0 hover-effect">
+                <div class="card-body text-center">
+                    <div class="fs-1 text-warning mb-3">
+                        <i class="bi bi-book-fill"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Subjects</h5>
+                    <p class="card-text text-muted small">Organize curriculum and subject allocations.</p>
+                    <a href="subjects" class="btn btn-outline-warning stretched-link">View Subjects</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grades Card -->
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm border-0 hover-effect">
+                <div class="card-body text-center">
+                    <div class="fs-1 text-danger mb-3">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Grades</h5>
+                    <p class="card-text text-muted small">Record and track student performance.</p>
+                    <a href="grades" class="btn btn-outline-danger stretched-link">Manage Grades</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-effect {
+        transition: transform 0.2s ease-in-out;
+    }
+    .hover-effect:hover {
+        transform: translateY(-5px);
+    }
+</style>
