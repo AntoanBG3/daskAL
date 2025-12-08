@@ -16,7 +16,9 @@ obj/
 *.db-shm
 *.db-wal
 start.db
+school.db
 
 # OS
 Thumbs.db
 .DS_Store
+SchoolManagementSystem.Web/SchoolManagementSystem.Web/school.db

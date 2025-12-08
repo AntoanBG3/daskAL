@@ -3,22 +3,22 @@
 <div class="app-container">
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
-        <div class="d-flex align-items-center p-3 border-bottom border-secondary" style="border-color: rgba(255,255,255,0.1) !important; height: 64px;">
+        <div class="sidebar-header">
             <i class="bi bi-mortarboard-fill fs-4 text-primary me-2"></i>
             <span class="fs-5 fw-bold tracking-tight text-white">daskAL</span>
         </div>
         
         <NavMenu />
         
-        <div class="mt-auto p-3 border-top border-secondary" style="border-color: rgba(255,255,255,0.1) !important;">
+        <div class="sidebar-footer">
              <div class="small text-muted text-center">&copy; @DateTime.Now.Year daskAL</div>
         </div>
     </div>
 
     <!-- Main Content -->
     <div class="main-content-wrapper">
-        <header class="top-bar">
-             <button class="btn btn-icon d-lg-none" type="button" onclick="document.getElementById('sidebar').classList.toggle('show')">
+        <header class="top-bar glass sticky-top">
+             <button class="btn btn-icon d-lg-none" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation">
                 <i class="bi bi-list fs-4"></i>
             </button>
             
@@ -28,13 +28,19 @@
         </header>
 
         <main class="content-scrollable">
-            <div class="container-fluid py-4" style="max-width: 1200px;">
+            <div class="main-container">
                 @Body
             </div>
         </main>
     </div>
-    <div class="sidebar-overlay" onclick="document.getElementById('sidebar').classList.remove('show')"></div>
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 </div>
+
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('show');
+    }
+</script>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
