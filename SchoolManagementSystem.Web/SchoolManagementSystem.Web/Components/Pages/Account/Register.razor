@@ -95,6 +95,7 @@
 </div>
 
 @code {
+    [SupplyParameterFromForm]
     private RegisterRequest TargetModel { get; set; } = new();
     private List<string> Errors { get; set; } = new();
     private bool IsLoading { get; set; } = false;
