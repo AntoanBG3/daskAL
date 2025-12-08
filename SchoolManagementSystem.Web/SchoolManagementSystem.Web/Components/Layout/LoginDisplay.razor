@@ -31,9 +31,12 @@
                 </li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
-                    <button class="dropdown-item text-danger" @onclick="Logout">
-                        <i class="bi bi-box-arrow-right me-2"></i> Sign Out
-                    </button>
+                    <form action="/logout" method="post">
+                        <AntiforgeryToken />
+                        <button type="submit" class="dropdown-item text-danger">
+                            <i class="bi bi-box-arrow-right me-2"></i> Sign Out
+                        </button>
+                    </form>
                 </li>
             </ul>
         </div>
@@ -64,12 +67,6 @@
 </style>
 
 @code {
-    private async Task Logout()
-    {
-        await AuthService.LogoutAsync();
-        NavigationManager.NavigateTo("/login", forceLoad: true);
-    }
-    
     private string GetInitials(string? name)
     {
         if (string.IsNullOrWhiteSpace(name)) return "?";
