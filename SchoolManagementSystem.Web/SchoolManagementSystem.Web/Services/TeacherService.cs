@@ -60,12 +60,18 @@ namespace SchoolManagementSystem.Web.Services
 
         public async Task AddTeacherAsync(TeacherViewModel model)
         {
+            await AddTeacherAsync(model, null);
+        }
+
+        public async Task AddTeacherAsync(TeacherViewModel model, string? userId)
+        {
             try
             {
                 var teacher = new Teacher
                 {
                     FirstName = model.FirstName,
-                    LastName = model.LastName
+                    LastName = model.LastName,
+                    UserId = userId
                 };
                 _context.Teachers.Add(teacher);
                 await _context.SaveChangesAsync();

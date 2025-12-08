@@ -16,6 +16,9 @@ namespace SchoolManagementSystem.Web.Models.ViewModels
         public string Class { get; set; } = string.Empty;
 
         [Required]
+        public int? ClassId { get; set; }
+
+        [Required]
         public DateTime DateOfBirth { get; set; }
 
         public string FullName => $"{FirstName} {LastName}";

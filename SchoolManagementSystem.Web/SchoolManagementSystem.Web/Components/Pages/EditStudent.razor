@@ -35,13 +35,14 @@ else
 
         <div class="mb-3">
             <label class="form-label">Class</label>
-            <InputSelect class="form-select" @bind-Value="selectedClassId">
+            <InputSelect class="form-select" @bind-Value="student.ClassId">
                 <option value="">-- Select Class --</option>
                 @foreach (var c in classes)
                 {
                     <option value="@c.Id">@c.Name</option>
                 }
             </InputSelect>
+            <ValidationMessage For="@(() => student.ClassId)" />
         </div>
 
         <div class="mb-3">
@@ -63,7 +64,6 @@ else
     private StudentViewModel student { get; set; } = new();
 
     private List<SchoolClassViewModel>? classes;
-    private string selectedClassId = ""; // Bind to string for simplicity with Select, fetch manually
 
     protected override async Task OnInitializedAsync()
     {
@@ -72,20 +72,18 @@ else
         if (existingStudent != null)
         {
             student = existingStudent;
-            // Pre-select class based on Name match? Or better, implement GetSchoolClassByStudentId in service?
-            // StudentViewModel currently returns "Class Name".
-            // Finding the ID from Name is risky but current best effort without changing ViewModel heavily.
-            var match = classes.FirstOrDefault(c => c.Name == student.Class);
-            if(match != null) selectedClassId = match.Id.ToString();
         }
     }
 
     private async Task HandleValidSubmit()
     {
-        if(int.TryParse(selectedClassId, out int classId))
+        if(student.ClassId.HasValue)
         {
+             // Maintain legacy Class string for validation if needed
+             student.Class = classes?.FirstOrDefault(c => c.Id == student.ClassId)?.Name ?? "";
+
              // We pass the ID to proper service method
-             await StudentService.UpdateStudentAsync(student, classId);
+             await StudentService.UpdateStudentAsync(student, student.ClassId.Value);
              NavigationManager.NavigateTo("students");
         }
     }

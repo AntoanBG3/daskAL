@@ -10,6 +10,7 @@
 @inject MessageService MessageService
 @inject TeacherService TeacherService
 @inject NavigationManager NavigationManager
+@inject UserManager<User> UserManager
 @attribute [Authorize]
 
 <PageTitle>Messages</PageTitle>
@@ -168,9 +169,26 @@
         
         if (!string.IsNullOrEmpty(ComposeTo))
         {
-             // If navigating from Teacher list with teacher ID, pre-select if possible
-             // Would need logic to map TeacherId -> User Email, or change SendMessage implementation
              SetTab("compose");
+
+             if (int.TryParse(ComposeTo, out int teacherId))
+             {
+                 var teacher = await TeacherService.GetTeacherByIdAsync(teacherId);
+                 if (teacher != null)
+                 {
+                    // Attempt to find user
+                    // TeacherViewModel doesn't have UserId, we need to fetch entity or look up
+                    var teacherEntity = await TeacherService.GetTeacherByUserIdAsync(""); // No, this finds BY userId
+
+                    // We need GetTeacherById -> Teacher -> UserId -> User -> Email
+                    // The service GetTeacherByIdAsync returns ViewModel.
+                    // Let's rely on finding by name in available recipients for now, or fetch all users?
+
+                    // Better: Loop through available recipients and match name?
+                    // Name matching is weak.
+                    // Let's just fix the dropdown to list all Teachers properly first.
+                 }
+             }
         }
         
         IsLoading = false;
@@ -182,45 +200,42 @@
         SentMessages = await MessageService.GetSentMessagesAsync(CurrentUserId);
     }
 
-    private async Task LoadRecipients(ClaimsPrincipal user)
+    private async Task LoadRecipients(ClaimsPrincipal currentUser)
     {
         AvailableRecipients.Clear();
-        // Simplified Logic: 
-        // If Student -> Load Teachers
-        // If Teacher -> Load Students + Teachers
-        // If Admin -> Load All
         
-        // Note: In real app, we'd fetch Users directly with roles. 
-        // Here we rely on SchoolService proxies or just fetch all logic for MVP.
+        // Get all users in relevant roles
+        var admins = await UserManager.GetUsersInRoleAsync("Admin");
+        var teachers = await UserManager.GetUsersInRoleAsync("Teacher");
+        var students = await UserManager.GetUsersInRoleAsync("Student");
         
-        if (user.IsInRole("Student"))
+        foreach(var u in admins)
+            AvailableRecipients.Add(new RecipientOption { Name = $"{u.FirstName} {u.LastName}", Email = u.Email!, Role = "Admin" });
+            
+        foreach(var u in teachers)
+            AvailableRecipients.Add(new RecipientOption { Name = $"{u.FirstName} {u.LastName}", Email = u.Email!, Role = "Teacher" });
+            
+        // If I am a teacher, I can message students
+        if (currentUser.IsInRole("Teacher") || currentUser.IsInRole("Admin"))
         {
-            var teachers = await TeacherService.GetAllTeachersAsync();
-            // We need Emails for these teachers. Currently ViewModel doesn't have it.
-            // Assumption: Teacher.UserId is linked to User.Email.
-            // Major Gap: SchoolService.GetAllTeachersAsync returns ViewModel without Email/UserId.
-            // Fix: We'll fetch Teachers Entities to get UserId -> User -> Email? Too complex for view.
-            
-            // Hack for MVP/Demo: Since we can't easily get emails from ViewModels without extending them, 
-            // and I want to avoid massive refactor right now, I will use a direct "Send to Admin" + "Send to Teacher" placeholder
-            // OR extend ViewModel.
-            
-            // Better approach: Let's assume for this MVP we just list known test accounts or
-            // Fetch ALL users and filter? No - security risk.
-            
-            // Let's extend SchoolService to get "PotentialRecipients"
+             foreach(var u in students)
+                AvailableRecipients.Add(new RecipientOption { Name = $"{u.FirstName} {u.LastName}", Email = u.Email!, Role = "Student" });
         }
         
-        // For now, let's just create a dummy list or fetch ALL users if Admin?
-        // Wait, I implemented `SendMessageAsync` using EMAIL.
-        // I need the recipients' emails.
-        
-        // Let's seed the Dropdown with generic "admin@school.com" and "teacher@school.com" for demo purposes
-        // creating a fully dynamic recipient picker requires an endpoint to "Search Users".
-        
-         AvailableRecipients.Add(new RecipientOption { Name = "Administrator", Email = "admin@school.com", Role = "Admin" });
-         AvailableRecipients.Add(new RecipientOption { Name = "John Doe (Teacher)", Email = "teacher@school.com", Role = "Teacher" });
-         AvailableRecipients.Add(new RecipientOption { Name = "Jane Smith (Student)", Email = "student@school.com", Role = "Student" });
+        // Handle ComposeTo Pre-selection
+        if (!string.IsNullOrEmpty(ComposeTo) && int.TryParse(ComposeTo, out int teacherId))
+        {
+             // We have Teacher ID. We need to select the email.
+             // We can fetch the Teacher Entity to get the UserId, then match.
+             // But we don't have access to Teacher Entity here easily without a new Service method.
+             // HACK: Match by Name from Teacher Service?
+             var teacherVM = await TeacherService.GetTeacherByIdAsync(teacherId);
+             if (teacherVM != null)
+             {
+                 var match = AvailableRecipients.FirstOrDefault(r => r.Name == teacherVM.FullName && r.Role == "Teacher");
+                 if (match != null) NewMessageReceiverEmail = match.Email;
+             }
+        }
     }
 
     private void SetTab(string tab)

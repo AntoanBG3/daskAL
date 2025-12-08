@@ -67,7 +67,7 @@ namespace SchoolManagementSystem.Tests
                 FirstName = "New",
                 LastName = "Student",
                 DateOfBirth = DateTime.Now,
-                Class = "Test Class" // Note: Logic handles parsing, testing basic add here
+                Class = "Test Class"
             };
 
             using (var context = CreateContext())
@@ -75,10 +75,6 @@ namespace SchoolManagementSystem.Tests
                 var service = new StudentService(context, _mockLogger.Object);
 
                 // Act
-                // We use the overload accepting classId for direct testing or the one parsing string?
-                // The parsing overload calls the classId overload. Let's test the direct one for simplicity first,
-                // or the main one if we mock the logic?
-                // Let's test simple AddStudentAsync(model, classId)
                 await service.AddStudentAsync(studentModel, 1);
             }
 
@@ -94,13 +90,46 @@ namespace SchoolManagementSystem.Tests
         }
 
         [Fact]
-        public async Task GetAllStudentsAsync_LogsError_OnException()
+        public async Task AddStudentAsync_ViewModel_ThrowsOnInvalidId()
         {
-            // Arrange
-            // To simulate an exception from EF Core InMemory is hard without mocking the context itself.
-            // But we can just verifying the logger is setup correctly in the constructor.
-            // For now, testing the happy path is sufficient for Phase 1 start.
-            // A true exception test would require mocking the DbContext or passing a broken option.
+            using (var context = CreateContext())
+            {
+                var service = new StudentService(context, _mockLogger.Object);
+                var model = new StudentViewModel
+                {
+                    FirstName = "Bad",
+                    LastName = "Class",
+                    Class = "NotAnInt",
+                    ClassId = null // Ensure null to test fallback or failure
+                };
+
+                // Act & Assert
+                await Assert.ThrowsAsync<ArgumentException>(() => service.AddStudentAsync(model));
+            }
+        }
+
+        [Fact]
+        public async Task AddStudentAsync_ViewModel_UsesClassId()
+        {
+            using (var context = CreateContext())
+            {
+                var service = new StudentService(context, _mockLogger.Object);
+                var model = new StudentViewModel
+                {
+                    FirstName = "Good",
+                    LastName = "Class",
+                    Class = "NotAnInt",
+                    ClassId = 99
+                };
+
+                await service.AddStudentAsync(model);
+            }
+
+            using (var context = CreateContext())
+            {
+                var savedStudent = await context.Students.FirstOrDefaultAsync();
+                Assert.Equal(99, savedStudent.SchoolClassId);
+            }
         }
     }
 }

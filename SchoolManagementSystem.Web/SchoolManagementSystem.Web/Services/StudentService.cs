@@ -31,6 +31,7 @@ namespace SchoolManagementSystem.Web.Services
                     FirstName = s.FirstName,
                     LastName = s.LastName,
                     Class = s.SchoolClass?.Name ?? "Unassigned",
+                    ClassId = s.SchoolClassId,
                     DateOfBirth = s.DateOfBirth,
                     AverageGrade = s.Grades.Any() ? s.Grades.Average(g => g.Value) : 0
                 }).ToList();
@@ -65,9 +66,17 @@ namespace SchoolManagementSystem.Web.Services
         
         public async Task AddStudentAsync(StudentViewModel model)
         {
-            if (int.TryParse(model.Class, out int classId))
+            if (model.ClassId.HasValue)
+            {
+                await AddStudentAsync(model, model.ClassId.Value);
+            }
+            else if (int.TryParse(model.Class, out int classId))
             {
                 await AddStudentAsync(model, classId);
+            }
+            else
+            {
+                throw new ArgumentException("Invalid Class ID provided.");
             }
         }
 
@@ -88,6 +97,7 @@ namespace SchoolManagementSystem.Web.Services
                     FirstName = s.FirstName,
                     LastName = s.LastName,
                     Class = s.SchoolClass?.Name ?? "Unassigned",
+                    ClassId = s.SchoolClassId,
                     DateOfBirth = s.DateOfBirth,
                     AverageGrade = s.Grades.Any() ? s.Grades.Average(g => g.Value) : 0
                 };

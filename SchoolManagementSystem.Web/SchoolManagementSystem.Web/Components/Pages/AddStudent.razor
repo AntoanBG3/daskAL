@@ -31,14 +31,14 @@ else
 
         <div class="mb-3">
             <label class="form-label">Class</label>
-            <InputSelect class="form-select" @bind-Value="student.Class">
+            <InputSelect class="form-select" @bind-Value="student.ClassId">
                 <option value="">-- Select Class --</option>
                 @foreach (var c in classes)
                 {
                     <option value="@c.Id">@c.Name</option>
                 }
             </InputSelect>
-            <ValidationMessage For="@(() => student.Class)" />
+            <ValidationMessage For="@(() => student.ClassId)" />
         </div>
 
         <div class="mb-3">
@@ -65,10 +65,10 @@ else
 
     private async Task HandleValidSubmit()
     {
-        // student.Class now holds the ID as a string due to ViewModel design (backwards compat).
-        // Ideally should update ViewModel to have int ClassId, but let's parse it for now or rely on Service Overload.
-        // SchoolService.AddStudentAsync(model) calls int.TryParse(model.Class).
-        // So binding the ID to string Class property works if value is the ID.
+        // Set legacy property just in case validation or other logic needs it, though we rely on ClassId now.
+        // Or leave it empty if not needed.
+        student.Class = student.ClassId.ToString() ?? "";
+
         await StudentService.AddStudentAsync(student);
         Navigation.NavigateTo("students");
     }

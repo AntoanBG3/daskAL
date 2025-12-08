@@ -1,7 +1,12 @@
 @page "/teachers/add"
 @inject SchoolManagementSystem.Web.Services.TeacherService TeacherService
+@inject SchoolManagementSystem.Web.Services.IAuthService AuthService
 @inject NavigationManager NavigationManager
 @using SchoolManagementSystem.Web.Models.ViewModels
+@using SchoolManagementSystem.Web.DTOs
+@using Microsoft.AspNetCore.Identity
+@using SchoolManagementSystem.Web.Models.Auth
+@inject UserManager<User> UserManager
 
 <h3>Add New Teacher</h3>
 
@@ -19,6 +24,17 @@
         <InputText id="lastName" class="form-control" @bind-Value="teacher.LastName" />
     </div>
 
+    <hr/>
+    <h5>Create Login (Optional)</h5>
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <InputText id="email" class="form-control" @bind-Value="email" />
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <InputText id="password" type="password" class="form-control" @bind-Value="password" />
+    </div>
+
     <button type="submit" class="btn btn-primary">Add Teacher</button>
     <a href="/teachers" class="btn btn-secondary">Cancel</a>
 </EditForm>
@@ -27,9 +43,42 @@
     [SupplyParameterFromForm]
     private TeacherViewModel teacher { get; set; } = new();
 
+    [SupplyParameterFromForm]
+    private string? email { get; set; }
+
+    [SupplyParameterFromForm]
+    private string? password { get; set; }
+
     private async Task HandleValidSubmit()
     {
-        await TeacherService.AddTeacherAsync(teacher);
+        string? userId = null;
+        if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password))
+        {
+            var result = await AuthService.RegisterAsync(new RegisterRequest {
+                Email = email,
+                Password = password,
+                FirstName = teacher.FirstName,
+                LastName = teacher.LastName
+            });
+
+            if (result.Success)
+            {
+                 // Find the user to get ID. RegisterAsync doesn't return ID currently.
+                 var user = await UserManager.FindByEmailAsync(email);
+                 if (user != null)
+                 {
+                     userId = user.Id;
+                     // Ensure role is Teacher (Register defaults to Student)
+                     if (!await UserManager.IsInRoleAsync(user, "Teacher"))
+                     {
+                         await UserManager.AddToRoleAsync(user, "Teacher");
+                         await UserManager.RemoveFromRoleAsync(user, "Student");
+                     }
+                 }
+            }
+        }
+
+        await TeacherService.AddTeacherAsync(teacher, userId);
         NavigationManager.NavigateTo("/teachers");
     }
 }
