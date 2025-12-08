@@ -72,35 +72,67 @@
             <div class="card-body">
                 <div class="mb-4">
                     <label class="form-label fw-semibold mb-3">Sidebar Theme</label>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <div class="theme-option @(currentTheme == "default" ? "active" : "")" @onclick="@(() => SetTheme("default"))">
-                                <div class="theme-preview default-preview">
-                                    <div class="preview-sidebar"></div>
-                                    <div class="preview-content"></div>
-                                </div>
-                                <div class="theme-label">Default (Dark)</div>
+                    @if (currentTheme == null)
+                    {
+                         <div class="d-flex justify-content-center py-4">
+                             <div class="spinner-border text-primary spinner-border-sm" role="status">
+                                 <span class="visually-hidden">Loading...</span>
+                             </div>
+                         </div>
+                    }
+                    else
+                    {
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <button type="button" class="btn w-100 p-0 border-0 text-start position-relative theme-btn @(currentTheme == "default" ? "active" : "")" 
+                                        @onclick="@(() => SetTheme("default"))">
+                                    <div class="theme-preview default-preview">
+                                        <div class="preview-sidebar"></div>
+                                        <div class="preview-content"></div>
+                                    </div>
+                                    <div class="theme-label mt-2">
+                                        Default (Dark)
+                                        @if (currentTheme == "default")
+                                        {
+                                            <i class="bi bi-check-circle-fill text-primary ms-1"></i>
+                                        }
+                                    </div>
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="button" class="btn w-100 p-0 border-0 text-start position-relative theme-btn @(currentTheme == "light" ? "active" : "")" 
+                                        @onclick="@(() => SetTheme("light"))">
+                                    <div class="theme-preview light-preview">
+                                        <div class="preview-sidebar"></div>
+                                        <div class="preview-content"></div>
+                                    </div>
+                                    <div class="theme-label mt-2">
+                                        Light
+                                        @if (currentTheme == "light")
+                                        {
+                                            <i class="bi bi-check-circle-fill text-primary ms-1"></i>
+                                        }
+                                    </div>
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="button" class="btn w-100 p-0 border-0 text-start position-relative theme-btn @(currentTheme == "navy" ? "active" : "")" 
+                                        @onclick="@(() => SetTheme("navy"))">
+                                    <div class="theme-preview navy-preview">
+                                        <div class="preview-sidebar"></div>
+                                        <div class="preview-content"></div>
+                                    </div>
+                                    <div class="theme-label mt-2">
+                                        Navy Blue
+                                        @if (currentTheme == "navy")
+                                        {
+                                            <i class="bi bi-check-circle-fill text-primary ms-1"></i>
+                                        }
+                                    </div>
+                                </button>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="theme-option @(currentTheme == "light" ? "active" : "")" @onclick="@(() => SetTheme("light"))">
-                                <div class="theme-preview light-preview">
-                                    <div class="preview-sidebar"></div>
-                                    <div class="preview-content"></div>
-                                </div>
-                                <div class="theme-label">Light</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="theme-option @(currentTheme == "navy" ? "active" : "")" @onclick="@(() => SetTheme("navy"))">
-                                <div class="theme-preview navy-preview">
-                                    <div class="preview-sidebar"></div>
-                                    <div class="preview-content"></div>
-                                </div>
-                                <div class="theme-label">Navy Blue</div>
-                            </div>
-                        </div>
-                    </div>
+                    }
                 </div>
             </div>
         </div>
@@ -108,38 +140,28 @@
 </div>
 
 <style>
-    .theme-option {
-        cursor: pointer;
-        padding: 0.5rem;
+    .theme-btn {
+        transition: transform 0.2s;
         border-radius: 0.75rem;
-        border: 2px solid transparent;
-        transition: all 0.2s;
     }
 
-    .theme-option:hover {
-        background-color: var(--slate-100);
+    .theme-btn:hover {
+        transform: translateY(-2px);
     }
-
-    .theme-option.active {
-        border-color: var(--primary);
-        background-color: rgba(79, 70, 229, 0.05);
-    }
-
-    .theme-label {
-        text-align: center;
-        margin-top: 0.5rem;
-        font-weight: 500;
-        font-size: 0.9rem;
-        color: var(--slate-700);
-    }
-
+    
     .theme-preview {
         height: 100px;
-        border-radius: 0.5rem;
+        border-radius: 0.75rem;
         overflow: hidden;
-        border: 1px solid var(--slate-200);
+        border: 2px solid var(--slate-200);
         display: flex;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: all 0.2s;
+    }
+    
+    .theme-btn.active .theme-preview {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
     }
 
     .preview-sidebar {
@@ -153,6 +175,18 @@
         background-color: #f8fafc;
     }
 
+    .theme-label {
+        text-align: center;
+        width: 100%;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+    
+    .theme-btn.active .theme-label {
+        color: var(--primary);
+    }
+
     /* Previews */
     .default-preview .preview-sidebar { background-color: #0f172a; }
     .light-preview .preview-sidebar { background-color: #ffffff; border-right: 1px solid #e2e8f0; }
@@ -160,7 +194,7 @@
 </style>
 
 @code {
-    private string currentTheme = "default";
+    private string? currentTheme;
     private string? CurrentPictureBase64;
     private bool IsPendingApproval;
     private bool ShowUploadSuccess;
@@ -192,16 +226,23 @@
     {
         if (firstRender)
         {
-            currentTheme = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "sidebarTheme") ?? "default";
-            StateHasChanged();
+            try 
+            {
+                currentTheme = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "sidebarTheme") ?? "default";
+                StateHasChanged();
+            }
+            catch
+            {
+                currentTheme = "default";
+                StateHasChanged();
+            }
         }
     }
 
     private async Task SetTheme(string theme)
     {
         currentTheme = theme;
-        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "sidebarTheme", theme);
-        await JSRuntime.InvokeVoidAsync("document.documentElement.setAttribute", "data-sidebar-theme", theme);
+        await JSRuntime.InvokeVoidAsync("setTheme", theme);
     }
 
     private async Task LoadFiles(InputFileChangeEventArgs e)

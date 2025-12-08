@@ -41,6 +41,11 @@
         }
 
         window.getClientHour = () => new Date().getHours();
+
+        window.setTheme = (theme) => {
+            document.documentElement.setAttribute('data-sidebar-theme', theme);
+            localStorage.setItem('sidebarTheme', theme);
+        };
     </script>
 </body>
 
