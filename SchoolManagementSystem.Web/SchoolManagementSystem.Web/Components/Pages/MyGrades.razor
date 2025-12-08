@@ -4,7 +4,9 @@
 @using SchoolManagementSystem.Web.Models.ViewModels
 @using SchoolManagementSystem.Web.Services
 @inject AuthenticationStateProvider AuthStateProvider
-@inject SchoolService SchoolService
+@inject StudentService StudentService
+@inject GradeService GradeService
+@inject AbsenceService AbsenceService
 @attribute [Authorize(Roles = "Student")]
 
 <PageTitle>My Grades</PageTitle>
@@ -115,11 +117,11 @@
             var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!string.IsNullOrEmpty(userId))
             {
-                var student = await SchoolService.GetStudentByUserIdAsync(userId);
+                var student = await StudentService.GetStudentByUserIdAsync(userId);
                 if (student != null)
                 {
-                    Grades = await SchoolService.GetGradesForStudentAsync(student.Id);
-                    Absences = await SchoolService.GetAbsencesForStudentAsync(student.Id);
+                    Grades = await GradeService.GetGradesForStudentAsync(student.Id);
+                    Absences = await AbsenceService.GetAbsencesForStudentAsync(student.Id);
                 }
             }
         }

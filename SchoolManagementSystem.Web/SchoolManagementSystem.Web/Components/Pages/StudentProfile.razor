@@ -4,7 +4,7 @@
 @using SchoolManagementSystem.Web.Models
 @using SchoolManagementSystem.Web.Services
 @inject AuthenticationStateProvider AuthStateProvider
-@inject SchoolService SchoolService
+@inject StudentService StudentService
 @attribute [Authorize(Roles = "Student")]
 
 <PageTitle>My Profile</PageTitle>
@@ -84,7 +84,7 @@
             var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!string.IsNullOrEmpty(userId))
             {
-                CurrentStudent = await SchoolService.GetStudentByUserIdAsync(userId);
+                CurrentStudent = await StudentService.GetStudentByUserIdAsync(userId);
             }
         }
         IsLoading = false;

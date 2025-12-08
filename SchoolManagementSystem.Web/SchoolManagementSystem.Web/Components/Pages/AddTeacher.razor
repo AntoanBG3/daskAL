@@ -1,5 +1,5 @@
 @page "/teachers/add"
-@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject SchoolManagementSystem.Web.Services.TeacherService TeacherService
 @inject NavigationManager NavigationManager
 @using SchoolManagementSystem.Web.Models.ViewModels
 
@@ -29,7 +29,7 @@
 
     private async Task HandleValidSubmit()
     {
-        await SchoolService.AddTeacherAsync(teacher);
+        await TeacherService.AddTeacherAsync(teacher);
         NavigationManager.NavigateTo("/teachers");
     }
 }

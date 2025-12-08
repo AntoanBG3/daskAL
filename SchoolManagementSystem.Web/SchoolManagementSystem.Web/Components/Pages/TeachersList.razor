@@ -2,7 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using SchoolManagementSystem.Web.Models.ViewModels
 @using SchoolManagementSystem.Web.Services
-@inject SchoolService SchoolService
+@inject TeacherService TeacherService
 @attribute [Authorize(Roles = "Student")]
 
 <PageTitle>Teachers</PageTitle>
@@ -66,6 +66,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Teachers = await SchoolService.GetAllTeachersAsync();
+        Teachers = await TeacherService.GetAllTeachersAsync();
     }
 }

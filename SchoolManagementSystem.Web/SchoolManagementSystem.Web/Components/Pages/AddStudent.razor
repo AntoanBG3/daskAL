@@ -1,6 +1,7 @@
 @page "/students/add"
 @attribute [Authorize(Roles = "Admin,Teacher")]
-@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject SchoolManagementSystem.Web.Services.StudentService StudentService
+@inject SchoolManagementSystem.Web.Services.ClassService ClassService
 @inject NavigationManager Navigation
 @using SchoolManagementSystem.Web.Models.ViewModels
 
@@ -59,7 +60,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        classes = await SchoolService.GetAllClassesAsync();
+        classes = await ClassService.GetAllClassesAsync();
     }
 
     private async Task HandleValidSubmit()
@@ -68,7 +69,7 @@ else
         // Ideally should update ViewModel to have int ClassId, but let's parse it for now or rely on Service Overload.
         // SchoolService.AddStudentAsync(model) calls int.TryParse(model.Class).
         // So binding the ID to string Class property works if value is the ID.
-        await SchoolService.AddStudentAsync(student);
+        await StudentService.AddStudentAsync(student);
         Navigation.NavigateTo("students");
     }
 }

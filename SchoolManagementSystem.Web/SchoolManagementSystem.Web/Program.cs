@@ -47,7 +47,15 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/access-denied";
 });
 
-builder.Services.AddScoped<SchoolService>();
+builder.Services.AddScoped<ClassService>();
+builder.Services.AddScoped<StudentService>();
+builder.Services.AddScoped<TeacherService>();
+builder.Services.AddScoped<SubjectService>();
+builder.Services.AddScoped<GradeService>();
+builder.Services.AddScoped<AbsenceService>();
+builder.Services.AddScoped<MessageService>();
+builder.Services.AddScoped<DataImportService>();
+// builder.Services.AddScoped<SchoolService>(); // Deprecated
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddRazorComponents()

@@ -2,7 +2,8 @@
 @page "/classes/edit/{Id:int}"
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
-@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject SchoolManagementSystem.Web.Services.ClassService ClassService
+@inject SchoolManagementSystem.Web.Services.SubjectService SubjectService
 @inject NavigationManager Navigation
 @using SchoolManagementSystem.Web.Models.ViewModels
 
@@ -95,7 +96,7 @@
     {
         if (Id.HasValue)
         {
-            var existing = await SchoolService.GetClassByIdAsync(Id.Value);
+        var existing = await ClassService.GetClassByIdAsync(Id.Value);
             if (existing != null)
             {
                 schoolClass = existing;
@@ -116,7 +117,7 @@
             }
         }
         
-        allSubjects = await SchoolService.GetAllSubjectsAsync();
+        allSubjects = await SubjectService.GetAllSubjectsAsync();
         
         // Populate selected IDs
         if (Id.HasValue)
@@ -165,14 +166,16 @@
             // Wait, I missed UpdateClassAsync in previous step. I only added UpdateClassSubjectsAsync.
             // I need to add that.
             
-            await SchoolService.UpdateClassSubjectsAsync(Id.Value, selectedSubjectIds.ToList());
+            // Update Name
+            await ClassService.UpdateClassAsync(schoolClass);
+            await ClassService.UpdateClassSubjectsAsync(Id.Value, selectedSubjectIds.ToList());
             
             // Also need to update Name if changed?
             // Will add that service method.
         }
         else
         {
-            await SchoolService.AddClassAsync(schoolClass);
+            await ClassService.AddClassAsync(schoolClass);
         }
         Navigation.NavigateTo("classes");
     }

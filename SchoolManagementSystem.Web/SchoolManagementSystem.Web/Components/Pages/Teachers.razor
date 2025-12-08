@@ -1,6 +1,6 @@
 @page "/teachers"
 @attribute [Authorize(Roles = "Admin")]
-@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject SchoolManagementSystem.Web.Services.TeacherService TeacherService
 @inject IJSRuntime JSRuntime
 @using SchoolManagementSystem.Web.Models.ViewModels
 
@@ -65,14 +65,14 @@ else
 
     private async Task LoadTeachers()
     {
-        teachers = await SchoolService.GetAllTeachersAsync();
+        teachers = await TeacherService.GetAllTeachersAsync();
     }
 
     private async Task DeleteTeacher(int id)
     {
          if (await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this teacher?"))
         {
-            await SchoolService.DeleteTeacherAsync(id);
+            await TeacherService.DeleteTeacherAsync(id);
             await LoadTeachers();
         }
     }

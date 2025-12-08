@@ -5,7 +5,8 @@
 @using SchoolManagementSystem.Web.Models.ViewModels
 @using SchoolManagementSystem.Web.Services
 @inject AuthenticationStateProvider AuthStateProvider
-@inject SchoolService SchoolService
+@inject MessageService MessageService
+@inject TeacherService TeacherService
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
 
@@ -175,8 +176,8 @@
 
     private async Task LoadMessages()
     {
-        InboxMessages = await SchoolService.GetMessagesForUserAsync(CurrentUserId);
-        SentMessages = await SchoolService.GetSentMessagesAsync(CurrentUserId);
+        InboxMessages = await MessageService.GetMessagesForUserAsync(CurrentUserId);
+        SentMessages = await MessageService.GetSentMessagesAsync(CurrentUserId);
     }
 
     private async Task LoadRecipients(ClaimsPrincipal user)
@@ -192,7 +193,7 @@
         
         if (user.IsInRole("Student"))
         {
-            var teachers = await SchoolService.GetAllTeachersAsync();
+            var teachers = await TeacherService.GetAllTeachersAsync();
             // We need Emails for these teachers. Currently ViewModel doesn't have it.
             // Assumption: Teacher.UserId is linked to User.Email.
             // Major Gap: SchoolService.GetAllTeachersAsync returns ViewModel without Email/UserId.
@@ -227,7 +228,7 @@
 
     private async Task MarkAsRead(int id)
     {
-        await SchoolService.MarkMessageAsReadAsync(id);
+        await MessageService.MarkMessageAsReadAsync(id);
         await LoadMessages();
     }
 
@@ -237,7 +238,7 @@
 
         try 
         {
-            await SchoolService.SendMessageAsync(CurrentUserId, NewMessageReceiverEmail, NewMessageSubject, NewMessageContent);
+            await MessageService.SendMessageAsync(CurrentUserId, NewMessageReceiverEmail, NewMessageSubject, NewMessageContent);
             NewMessageSubject = "";
             NewMessageContent = "";
             NewMessageReceiverEmail = "";

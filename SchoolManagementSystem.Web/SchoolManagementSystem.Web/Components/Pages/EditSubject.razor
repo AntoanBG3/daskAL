@@ -1,6 +1,7 @@
 @page "/subjects/edit/{Id:int}"
 @attribute [Authorize(Roles = "Admin,Teacher")]
-@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject SchoolManagementSystem.Web.Services.SubjectService SubjectService
+@inject SchoolManagementSystem.Web.Services.TeacherService TeacherService
 @inject NavigationManager NavigationManager
 @using SchoolManagementSystem.Web.Models.ViewModels
 
@@ -53,11 +54,11 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        teachers = await SchoolService.GetAllTeachersAsync();
+        teachers = await TeacherService.GetAllTeachersAsync();
         
         if (subject == null)
         {
-            subject = await SchoolService.GetSubjectByIdAsync(Id);
+            subject = await SubjectService.GetSubjectByIdAsync(Id);
         }
     }
 
@@ -66,7 +67,7 @@ else
         if (subject != null)
         {
             // If TeacherId is set, EF Core relationship will update accordingly.
-            await SchoolService.UpdateSubjectAsync(subject);
+            await SubjectService.UpdateSubjectAsync(subject);
             NavigationManager.NavigateTo("/subjects");
         }
     }

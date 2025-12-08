@@ -1,6 +1,7 @@
 @page "/students/edit/{Id:int}"
 @attribute [Authorize(Roles = "Admin,Teacher")]
-@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject SchoolManagementSystem.Web.Services.StudentService StudentService
+@inject SchoolManagementSystem.Web.Services.ClassService ClassService
 @inject NavigationManager NavigationManager
 @using SchoolManagementSystem.Web.Models.ViewModels
 
@@ -66,8 +67,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        classes = await SchoolService.GetAllClassesAsync();
-        var existingStudent = await SchoolService.GetStudentByIdAsync(Id);
+        classes = await ClassService.GetAllClassesAsync();
+        var existingStudent = await StudentService.GetStudentByIdAsync(Id);
         if (existingStudent != null)
         {
             student = existingStudent;
@@ -84,7 +85,7 @@ else
         if(int.TryParse(selectedClassId, out int classId))
         {
              // We pass the ID to proper service method
-             await SchoolService.UpdateStudentAsync(student, classId);
+             await StudentService.UpdateStudentAsync(student, classId);
              NavigationManager.NavigateTo("students");
         }
     }

@@ -1,5 +1,5 @@
 @page "/classes"
-@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject SchoolManagementSystem.Web.Services.ClassService ClassService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @using SchoolManagementSystem.Web.Models.ViewModels
@@ -79,6 +79,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        classes = await SchoolService.GetAllClassesAsync();
+        classes = await ClassService.GetAllClassesAsync();
     }
 }

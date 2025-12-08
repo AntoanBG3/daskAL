@@ -1,6 +1,6 @@
 @page "/subjects"
 @attribute [Authorize(Roles = "Admin,Teacher")]
-@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject SchoolManagementSystem.Web.Services.SubjectService SubjectService
 @inject IJSRuntime JSRuntime
 @using SchoolManagementSystem.Web.Models.ViewModels
 
@@ -58,14 +58,14 @@ else
 
     private async Task LoadSubjects()
     {
-        subjects = await SchoolService.GetAllSubjectsAsync();
+        subjects = await SubjectService.GetAllSubjectsAsync();
     }
     
     private async Task DeleteSubject(int id)
     {
          if (await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this subject?"))
         {
-            await SchoolService.DeleteSubjectAsync(id);
+            await SubjectService.DeleteSubjectAsync(id);
             await LoadSubjects();
         }
     }

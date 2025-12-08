@@ -2,7 +2,9 @@
 @using SchoolManagementSystem.Web.Models.ViewModels
 @using Microsoft.AspNetCore.Authorization
 @using SchoolManagementSystem.Web.Services
-@inject SchoolService SchoolService
+@inject AbsenceService AbsenceService
+@inject StudentService StudentService
+@inject SubjectService SubjectService
 @attribute [Authorize(Roles = "Teacher,Admin")]
 
 <PageTitle>Absences</PageTitle>
@@ -106,18 +108,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        students = await SchoolService.GetAllStudentsAsync();
+        students = await StudentService.GetAllStudentsAsync();
     }
 
     private async Task LoadStudentData(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out int studentId))
         {
-            selectedStudent = await SchoolService.GetStudentByIdAsync(studentId);
+            selectedStudent = await StudentService.GetStudentByIdAsync(studentId);
             if(selectedStudent != null)
             {
-               studentAbsences = await SchoolService.GetAbsencesForStudentAsync(studentId);
-               availableSubjects = await SchoolService.GetAvailableSubjectsForStudentAsync(studentId);
+               studentAbsences = await AbsenceService.GetAbsencesForStudentAsync(studentId);
+               availableSubjects = await SubjectService.GetAvailableSubjectsForStudentAsync(studentId);
                newAbsenceSubjectId = null;
                newAbsenceIsExcused = false;
             }
@@ -134,10 +136,10 @@
     {
         if (selectedStudent != null)
         {
-            await SchoolService.AddAbsenceAsync(selectedStudent.Id, newAbsenceSubjectId, newAbsenceIsExcused);
+            await AbsenceService.AddAbsenceAsync(selectedStudent.Id, newAbsenceSubjectId, newAbsenceIsExcused);
             
             // Refresh
-            studentAbsences = await SchoolService.GetAbsencesForStudentAsync(selectedStudent.Id);
+            studentAbsences = await AbsenceService.GetAbsencesForStudentAsync(selectedStudent.Id);
             newAbsenceSubjectId = null;
             newAbsenceIsExcused = false;
         }

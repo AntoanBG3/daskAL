@@ -1,5 +1,6 @@
 @page "/subjects/add"
-@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject SchoolManagementSystem.Web.Services.SubjectService SubjectService
+@inject SchoolManagementSystem.Web.Services.TeacherService TeacherService
 @inject NavigationManager NavigationManager
 @using SchoolManagementSystem.Web.Models.ViewModels
 
@@ -45,12 +46,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        teachers = await SchoolService.GetAllTeachersAsync();
+        teachers = await TeacherService.GetAllTeachersAsync();
     }
 
     private async Task HandleValidSubmit()
     {
-        await SchoolService.AddSubjectAsync(subject);
+        await SubjectService.AddSubjectAsync(subject);
         NavigationManager.NavigateTo("/subjects");
     }
 }

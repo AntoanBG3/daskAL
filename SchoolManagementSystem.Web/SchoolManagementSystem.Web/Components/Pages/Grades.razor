@@ -1,5 +1,7 @@
 @page "/grades"
-@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject SchoolManagementSystem.Web.Services.GradeService GradeService
+@inject SchoolManagementSystem.Web.Services.StudentService StudentService
+@inject SchoolManagementSystem.Web.Services.SubjectService SubjectService
 @inject NavigationManager Navigation
 @using SchoolManagementSystem.Web.Models.ViewModels
 @using Microsoft.AspNetCore.Authorization
@@ -100,21 +102,21 @@
 
     protected override async Task OnInitializedAsync()
     {
-        students = await SchoolService.GetAllStudentsAsync();
+        students = await StudentService.GetAllStudentsAsync();
     }
 
     private async Task LoadStudentData(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out int studentId))
         {
-            selectedStudent = await SchoolService.GetStudentByIdAsync(studentId);
+            selectedStudent = await StudentService.GetStudentByIdAsync(studentId);
             if(selectedStudent != null)
             {
                // Fetch Grades
-               studentGrades = await SchoolService.GetGradesForStudentAsync(studentId);
+               studentGrades = await GradeService.GetGradesForStudentAsync(studentId);
 
                // Fetch Available Subjects for this student's class
-               availableSubjects = await SchoolService.GetAvailableSubjectsForStudentAsync(studentId);
+               availableSubjects = await SubjectService.GetAvailableSubjectsForStudentAsync(studentId);
                
                newGrade = new GradeViewModel { StudentId = studentId, Value = 6 }; 
             }
@@ -132,10 +134,10 @@
         if (selectedStudent != null && newGrade.SubjectId.HasValue)
         {
             newGrade.StudentId = selectedStudent.Id;
-            await SchoolService.AddGradeAsync(newGrade);
+            await GradeService.AddGradeAsync(newGrade);
             
             // Refresh
-            studentGrades = await SchoolService.GetGradesForStudentAsync(selectedStudent.Id);
+            studentGrades = await GradeService.GetGradesForStudentAsync(selectedStudent.Id);
             
             newGrade = new GradeViewModel { StudentId = selectedStudent.Id, Value = 6 };
         }
