@@ -21,7 +21,6 @@
             <div class="card shadow border-0">
                 <div class="card-body p-4">
                     <EditForm Model="@TargetModel" OnValidSubmit="HandleLogin" FormName="loginForm">
-                        <AntiforgeryToken />
                         <DataAnnotationsValidator />
                         <ValidationSummary class="text-danger" />
 
