@@ -10,6 +10,7 @@
 @inject ClassService ClassService
 @inject AbsenceService AbsenceService
 @inject SchoolDbContext DbContext
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Dashboard - daskAL</PageTitle>
 
@@ -18,7 +19,7 @@
         <div class="mb-5 d-flex align-items-center justify-content-between">
             <div>
                 <h1 class="display-6 fw-bold mb-1">
-                    Good Morning, <span class="text-gradient">@context.User.Identity?.Name</span>
+                    @Greeting, <span class="text-gradient">@context.User.Identity?.Name</span>
                 </h1>
                 <p class="text-muted mb-0">Here's what's happening at your school today.</p>
             </div>
@@ -210,6 +211,30 @@
 @code {
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private string Greeting = "Good Morning"; // Default
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var hour = await JSRuntime.InvokeAsync<int>("getClientHour");
+                Greeting = hour switch
+                {
+                    >= 5 and < 12 => "Good Morning",
+                    >= 12 and < 18 => "Good Afternoon",
+                    _ => "Good Evening"
+                };
+                StateHasChanged();
+            }
+            catch
+            {
+                // Fallback or ignore if JS fails
+            }
+        }
+    }
 
     private int TotalStudents;
     private int TotalTeachers;

@@ -54,7 +54,7 @@
                              <i class="bi bi-search"></i>
                          </span>
                          <!-- Functional Filter Box -->
-                         <select class="form-select border-start-0 border-end-0 bg-transparent text-muted small search-filter"
+                         <select class="form-select border-0 bg-transparent text-muted small search-filter"
                                  style="max-width: 100px; font-size: 0.85rem;"
                                  @bind="SearchType">
                              <option value="All">All</option>
@@ -62,7 +62,7 @@
                              <option value="Teachers">Teachers</option>
                              <option value="Classes">Classes</option>
                          </select>
-                         <div class="vr my-2 text-muted opacity-25"></div>
+
                          <input type="text" class="form-control border-start-0 ps-2 search-input"
                                 placeholder="Search..." aria-label="Search"
                                 @bind="SearchQuery" @onkeyup="HandleSearch" />
