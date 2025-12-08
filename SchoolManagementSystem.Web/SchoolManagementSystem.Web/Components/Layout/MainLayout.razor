@@ -1,28 +1,48 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
 <div class="app-container">
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <i class="bi bi-mortarboard-fill fs-4 text-primary me-2"></i>
-            <span class="fs-5 fw-bold tracking-tight text-white">daskAL</span>
+            <div class="brand-logo">
+                <i class="bi bi-mortarboard-fill text-primary"></i>
+                <span>daskAL</span>
+            </div>
         </div>
         
         <NavMenu />
         
-        <div class="sidebar-footer">
-             <div class="small text-muted text-center">&copy; @DateTime.Now.Year daskAL</div>
+        <div class="p-3 border-top border-light">
+             <div class="d-flex align-items-center p-2 rounded hover-bg-light">
+                 <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                     <i class="bi bi-person"></i>
+                 </div>
+                 <div class="overflow-hidden">
+                     <div class="small fw-bold text-truncate text-dark">User</div>
+                     <div class="small text-muted" style="font-size: 0.7rem;">School Admin</div>
+                 </div>
+             </div>
         </div>
     </div>
 
     <!-- Main Content -->
     <div class="main-content-wrapper">
-        <header class="top-bar glass sticky-top">
-             <button class="btn btn-icon d-lg-none" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation">
+        <header class="top-bar sticky-top">
+             <button class="btn btn-outline d-lg-none" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation">
                 <i class="bi bi-list fs-4"></i>
             </button>
             
-            <div class="ms-auto">
+            <div class="d-flex align-items-center ms-auto gap-3">
+                 <button class="btn btn-outline border-0 text-muted">
+                    <i class="bi bi-search"></i>
+                </button>
+                <button class="btn btn-outline border-0 text-muted position-relative">
+                    <i class="bi bi-bell"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                        <span class="visually-hidden">New alerts</span>
+                    </span>
+                </button>
+                <div class="vr h-50 mx-2 text-muted"></div>
                 <LoginDisplay />
             </div>
         </header>

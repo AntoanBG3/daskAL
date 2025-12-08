@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 
@@ -6,196 +6,187 @@
 
 <AuthorizeView>
     <Authorized>
-        <div class="container mt-4">
-            <div class="row mb-4">
-                <div class="col">
-                    <h1 class="display-5 fw-bold text-primary">
-                        <i class="bi bi-speedometer2 me-2"></i>Welcome, @context.User.Identity?.Name!
-                    </h1>
-                    <p class="lead text-muted">Here's your personalized dashboard.</p>
+        <div class="mb-5 d-flex align-items-center justify-content-between">
+            <div>
+                <h1 class="display-6 fw-bold mb-1">
+                    Good Morning, <span class="text-gradient">@context.User.Identity?.Name</span>
+                </h1>
+                <p class="text-muted mb-0">Here's what's happening at your school today.</p>
+            </div>
+            <div class="d-none d-md-block">
+                <span class="text-muted small">@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</span>
+            </div>
+        </div>
+
+        <AuthorizeView Roles="Admin" Context="adminContext">
+            <!-- Bento Box Grid Layout -->
+            <div class="admin-dashboard-grid">
+                
+                <!-- Quick Stats - Large Span -->
+                <div class="card-premium grid-span-2">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div class="card-icon bg-primary-soft text-primary">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <span class="badge bg-light text-dark rounded-pill">Total</span>
+                    </div>
+                    <div>
+                        <h2 class="stat-value">1,248</h2>
+                        <p class="stat-label">Active Students</p>
+                    </div>
+                     <div class="mt-auto pt-3 border-top border-light">
+                        <a href="students" class="btn btn-sm btn-outline w-100">Manage Students</a>
+                    </div>
+                </div>
+
+                <div class="card-premium grid-span-1">
+                     <div class="card-icon" style="background: #FEF3C7; color: #D97706;">
+                        <i class="bi bi-person-badge-fill"></i>
+                    </div>
+                    <h2 class="stat-value">84</h2>
+                    <p class="stat-label">Teachers</p>
+                     <div class="mt-auto">
+                        <a href="teachers" class="text-decoration-none small fw-bold">View List &rarr;</a>
+                    </div>
+                </div>
+
+                <div class="card-premium grid-span-1">
+                     <div class="card-icon" style="background: #DBEAFE; color: #2563EB;">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h2 class="stat-value">42</h2>
+                    <p class="stat-label">Classes</p>
+                     <div class="mt-auto">
+                        <a href="classes" class="text-decoration-none small fw-bold">Manage &rarr;</a>
+                    </div>
+                </div>
+
+                 <!-- Chart Placeholder - Span 2 columns, 2 rows -->
+                <div class="card-premium grid-span-2 grid-row-2">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title">Attendance Overview</h5>
+                        <select class="form-select form-select-sm w-auto border-0 bg-light">
+                            <option>This Week</option>
+                            <option>Last Month</option>
+                        </select>
+                    </div>
+                    <div class="flex-grow-1 d-flex align-items-end justify-content-center bg-light rounded-3 p-3 position-relative overflow-hidden">
+                        <!-- CSS Only Bar Chart Representation -->
+                        <div class="d-flex justify-content-around w-100 h-100 align-items-end" style="gap: 8px;">
+                            <div style="width: 12%; height: 60%; background: #E2E8F0; border-radius: 8px 8px 0 0;"></div>
+                            <div style="width: 12%; height: 80%; background: #E2E8F0; border-radius: 8px 8px 0 0;"></div>
+                            <div style="width: 12%; height: 45%; background: #E2E8F0; border-radius: 8px 8px 0 0;"></div>
+                            <div style="width: 12%; height: 90%; background: var(--primary); border-radius: 8px 8px 0 0; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);"></div>
+                            <div style="width: 12%; height: 75%; background: #E2E8F0; border-radius: 8px 8px 0 0;"></div>
+                            <div style="width: 12%; height: 50%; background: #E2E8F0; border-radius: 8px 8px 0 0;"></div>
+                             <div style="width: 12%; height: 65%; background: #E2E8F0; border-radius: 8px 8px 0 0;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity or Other Actions -->
+                 <div class="card-premium grid-span-2">
+                    <h5 class="card-title mb-3">Quick Actions</h5>
+                    <div class="d-grid gap-2 grid-cols-2" style="grid-template-columns: 1fr 1fr; display: grid;">
+                        <a href="subjects" class="btn btn-outline text-start p-3 h-100 d-flex flex-column align-items-start justify-content-center">
+                            <i class="bi bi-book mb-2 fs-4 text-danger"></i>
+                            <span>Subjects</span>
+                        </a>
+                         <a href="grades" class="btn btn-outline text-start p-3 h-100 d-flex flex-column align-items-start justify-content-center">
+                            <i class="bi bi-graph-up mb-2 fs-4 text-success"></i>
+                            <span>Grades</span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </AuthorizeView>
+
+        <AuthorizeView Roles="Teacher" Context="teacherContext">
+            <div class="bento-grid">
+                <div class="card-premium" style="grid-column: span 2;">
+                     <div class="d-flex align-items-center mb-3">
+                         <div class="card-icon me-3" style="background: #DCFCE7; color: #16A34A;">
+                             <i class="bi bi-person-badge"></i>
+                         </div>
+                         <div>
+                             <h5 class="card-title mb-0">Teacher Portal</h5>
+                             <p class="text-muted small mb-0">Manage your classes and students</p>
+                         </div>
+                     </div>
+                     <div class="row g-3">
+                         <div class="col-md-6">
+                            <a href="grades" class="btn btn-primary w-100 py-3">
+                                <i class="bi bi-clipboard-data me-2"></i> Manage Grades
+                            </a>
+                         </div>
+                         <div class="col-md-6">
+                             <a href="messages" class="btn btn-outline w-100 py-3">
+                                <i class="bi bi-envelope me-2"></i> Messages
+                            </a>
+                         </div>
+                     </div>
+                </div>
+
+                 <div class="card-premium">
+                    <h5 class="card-title">Recent Updates</h5>
+                    <p class="text-muted small">No new notifications.</p>
                 </div>
             </div>
+        </AuthorizeView>
 
-            <AuthorizeView Roles="Admin" Context="adminContext">
-                <div class="row g-4 mb-4">
-                    <div class="col-12">
-                        <div class="alert alert-primary d-flex align-items-center" role="alert">
-                            <i class="bi bi-shield-check fs-4 me-3"></i>
-                            <div>
-                                <strong>Administrator Access</strong><br>
-                                <small>You have full access to manage all school resources.</small>
-                            </div>
+        <AuthorizeView Roles="Student" Context="studentContext">
+            <div class="bento-grid">
+                 <div class="card-premium grid-span-2">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                             <h5 class="card-title mb-1">Academic Performance</h5>
+                             <p class="text-muted small">Your latest grade average</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="display-6 fw-bold text-primary">A-</span>
                         </div>
                     </div>
-                </div>
-                
-                <div class="row g-4">
-                    <div class="col-md-3">
-                        <div class="card h-100 shadow-sm border-0 hover-effect">
-                            <div class="card-body text-center">
-                                <div class="fs-1 text-primary mb-3">
-                                    <i class="bi bi-building"></i>
-                                </div>
-                                <h5 class="card-title fw-bold">Classes</h5>
-                                <p class="card-text text-muted small">Manage school classes and schedules.</p>
-                                <a href="classes" class="btn btn-outline-primary stretched-link">Manage</a>
-                            </div>
-                        </div>
+                    <div class="progress" style="height: 8px; border-radius: 10px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 88%" aria-valuenow="88" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card h-100 shadow-sm border-0 hover-effect">
-                            <div class="card-body text-center">
-                                <div class="fs-1 text-success mb-3">
-                                    <i class="bi bi-people-fill"></i>
-                                </div>
-                                <h5 class="card-title fw-bold">Students</h5>
-                                <p class="card-text text-muted small">Manage student profiles and data.</p>
-                                <a href="students" class="btn btn-outline-success stretched-link">Manage</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card h-100 shadow-sm border-0 hover-effect">
-                            <div class="card-body text-center">
-                                <div class="fs-1 text-warning mb-3">
-                                    <i class="bi bi-person-badge-fill"></i>
-                                </div>
-                                <h5 class="card-title fw-bold">Teachers</h5>
-                                <p class="card-text text-muted small">Manage teacher assignments.</p>
-                                <a href="teachers" class="btn btn-outline-warning stretched-link">Manage</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card h-100 shadow-sm border-0 hover-effect">
-                            <div class="card-body text-center">
-                                <div class="fs-1 text-danger mb-3">
-                                    <i class="bi bi-book-fill"></i>
-                                </div>
-                                <h5 class="card-title fw-bold">Subjects</h5>
-                                <p class="card-text text-muted small">Manage curriculum subjects.</p>
-                                <a href="subjects" class="btn btn-outline-danger stretched-link">Manage</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </AuthorizeView>
-
-            <AuthorizeView Roles="Teacher" Context="teacherContext">
-                <div class="row g-4 mb-4">
-                    <div class="col-12">
-                        <div class="alert alert-success d-flex align-items-center" role="alert">
-                            <i class="bi bi-person-badge fs-4 me-3"></i>
-                            <div>
-                                <strong>Teacher Dashboard</strong><br>
-                                <small>Manage grades and communicate with students.</small>
-                            </div>
-                        </div>
+                    <div class="mt-4">
+                         <a href="my-grades" class="btn btn-primary btn-sm">View Full Report</a>
                     </div>
                 </div>
 
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="card h-100 shadow-sm border-0 hover-effect">
-                            <div class="card-body text-center">
-                                <div class="fs-1 text-primary mb-3">
-                                    <i class="bi bi-clipboard-data"></i>
-                                </div>
-                                <h5 class="card-title fw-bold">Grades</h5>
-                                <p class="card-text text-muted small">View and manage student grades.</p>
-                                <a href="grades" class="btn btn-outline-primary stretched-link">Open Grades</a>
-                            </div>
-                        </div>
+                <div class="card-premium">
+                     <div class="card-icon" style="background: #E0E7FF; color: #4F46E5;">
+                        <i class="bi bi-person-circle"></i>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card h-100 shadow-sm border-0 hover-effect">
-                            <div class="card-body text-center">
-                                <div class="fs-1 text-success mb-3">
-                                    <i class="bi bi-envelope"></i>
-                                </div>
-                                <h5 class="card-title fw-bold">Messages</h5>
-                                <p class="card-text text-muted small">Communicate with students and parents.</p>
-                                <a href="messages" class="btn btn-outline-success stretched-link">Open Messages</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </AuthorizeView>
-
-            <AuthorizeView Roles="Student" Context="studentContext">
-                <div class="row g-4 mb-4">
-                    <div class="col-12">
-                        <div class="alert alert-info d-flex align-items-center" role="alert">
-                            <i class="bi bi-mortarboard fs-4 me-3"></i>
-                            <div>
-                                <strong>Student Dashboard</strong><br>
-                                <small>View your grades, profile, and connect with teachers.</small>
-                            </div>
-                        </div>
-                    </div>
+                    <h5 class="card-title">My Profile</h5>
+                    <a href="my-profile" class="stretched-link text-muted small">View Details &rarr;</a>
                 </div>
 
-                <div class="row g-4">
-                    <div class="col-md-3">
-                        <div class="card h-100 shadow-sm border-0 hover-effect">
-                            <div class="card-body text-center">
-                                <div class="fs-1 text-primary mb-3">
-                                    <i class="bi bi-person-circle"></i>
-                                </div>
-                                <h5 class="card-title fw-bold">My Profile</h5>
-                                <p class="card-text text-muted small">View your personal information.</p>
-                                <a href="my-profile" class="btn btn-outline-primary stretched-link">View</a>
-                            </div>
-                        </div>
+                 <div class="card-premium">
+                     <div class="card-icon" style="background: #FEF3C7; color: #D97706;">
+                        <i class="bi bi-people"></i>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card h-100 shadow-sm border-0 hover-effect">
-                            <div class="card-body text-center">
-                                <div class="fs-1 text-success mb-3">
-                                    <i class="bi bi-journal-check"></i>
-                                </div>
-                                <h5 class="card-title fw-bold">My Grades</h5>
-                                <p class="card-text text-muted small">Check your academic performance.</p>
-                                <a href="my-grades" class="btn btn-outline-success stretched-link">View</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card h-100 shadow-sm border-0 hover-effect">
-                            <div class="card-body text-center">
-                                <div class="fs-1 text-warning mb-3">
-                                    <i class="bi bi-people"></i>
-                                </div>
-                                <h5 class="card-title fw-bold">Teachers</h5>
-                                <p class="card-text text-muted small">View your teachers' information.</p>
-                                <a href="teachers-list" class="btn btn-outline-warning stretched-link">View</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card h-100 shadow-sm border-0 hover-effect">
-                            <div class="card-body text-center">
-                                <div class="fs-1 text-info mb-3">
-                                    <i class="bi bi-envelope"></i>
-                                </div>
-                                <h5 class="card-title fw-bold">Messages</h5>
-                                <p class="card-text text-muted small">Contact teachers and staff.</p>
-                                <a href="messages" class="btn btn-outline-info stretched-link">Open</a>
-                            </div>
-                        </div>
-                    </div>
+                    <h5 class="card-title">Teachers</h5>
+                    <a href="teachers-list" class="stretched-link text-muted small">Contact Staff &rarr;</a>
                 </div>
-            </AuthorizeView>
-        </div>
+
+                 <div class="card-premium">
+                     <div class="card-icon" style="background: #FEE2E2; color: #DC2626;">
+                        <i class="bi bi-envelope"></i>
+                    </div>
+                    <h5 class="card-title">Messages</h5>
+                    <a href="messages" class="stretched-link text-muted small">Inbox &rarr;</a>
+                </div>
+
+            </div>
+        </AuthorizeView>
     </Authorized>
 </AuthorizeView>
 
-<style>
-    .hover-effect {
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    }
-    .hover-effect:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-    }
-</style>
+<!-- Floating Action Button -->
+<div class="fab-container">
+    <button class="fab-btn" title="Quick Action">
+        <i class="bi bi-plus-lg"></i>
+    </button>
+</div>
