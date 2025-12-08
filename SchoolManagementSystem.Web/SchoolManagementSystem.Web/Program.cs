@@ -88,6 +88,12 @@ app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(SchoolManagementSystem.Web.Client._Imports).Assembly);
 
+app.MapPost("/logout", async (SignInManager<User> signInManager) =>
+{
+    await signInManager.SignOutAsync();
+    return Results.Redirect("/login");
+});
+
 // Database Initialization
 using (var scope = app.Services.CreateScope())
 {

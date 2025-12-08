@@ -1,5 +1,7 @@
 @page "/classes/add"
 @page "/classes/edit/{Id:int}"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
 @inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
 @inject NavigationManager Navigation
 @using SchoolManagementSystem.Web.Models.ViewModels
@@ -46,7 +48,7 @@
                                     @foreach(var subject in allSubjects)
                                     {
                                         <div class="col-md-6">
-                                            <div class="form-check p-3 border rounded shadow-sm hover-effect">
+                                            <div class="form-check p-3 border rounded shadow-sm hover-effect position-relative">
                                                 <input class="form-check-input darker-border-checkbox" type="checkbox" 
                                                        value="@subject.Id" 
                                                        id="subject_@subject.Id"

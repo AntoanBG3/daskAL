@@ -3,8 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "daskAL", "SchoolManagementSystem.ConsoleApp\daskAL.csproj", "{8DD4600B-2C08-4AFB-87BA-0AD45C7DC4B7}"
-EndProject
+
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SchoolManagementSystem.Web", "SchoolManagementSystem.Web", "{9CB38FFA-0FB0-46A3-94E0-3EA8D8E51EDA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchoolManagementSystem.Web", "SchoolManagementSystem.Web\SchoolManagementSystem.Web\SchoolManagementSystem.Web.csproj", "{C2491FF3-45F1-4315-BB90-377E17E95C77}"
@@ -18,16 +17,14 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8DD4600B-2C08-4AFB-87BA-0AD45C7DC4B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8DD4600B-2C08-4AFB-87BA-0AD45C7DC4B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8DD4600B-2C08-4AFB-87BA-0AD45C7DC4B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8DD4600B-2C08-4AFB-87BA-0AD45C7DC4B7}.Release|Any CPU.Build.0 = Release|Any CPU
+
+
 		{C2491FF3-45F1-4315-BB90-377E17E95C77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C2491FF3-45F1-4315-BB90-377E17E95C77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2491FF3-45F1-4315-BB90-377E17E95C77}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2491FF3-45F1-4315-BB90-377E17E95C77}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{C2491FF3-45F1-4315-BB90-377E17E95C77} = {9CB38FFA-0FB0-46A3-94E0-3EA8D8E51EDA}
+
 	EndGlobalSection
 EndGlobal

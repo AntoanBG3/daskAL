@@ -80,7 +80,7 @@ public class AuthService : IAuthService
             // We'll Default to Student for public registration, Admin must assign others.
             // Or if first user? logic can be added.
             
-            // await _userManager.AddToRoleAsync(user, "Student"); 
+            await _userManager.AddToRoleAsync(user, "Student"); 
             return (true, Enumerable.Empty<string>());
         }
 
