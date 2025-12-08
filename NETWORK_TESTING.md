@@ -24,16 +24,25 @@ This method runs the application in an isolated container.
     ```bash
     docker run -p 5093:8080 -e ASPNETCORE_ENVIRONMENT=Development school-system
     ```
-    *Note: We map port 5093 on your machine to port 8080 in the container (default for .NET 8/9 images).*
+    *Note: We map port 5093 on your machine to port 8080 in the container.*
 
 3.  **Access the site**:
     Open a browser on another device and go to: `http://<YOUR_IP>:5093`
+
+### Debugging Docker
+If the container exits immediately or you cannot connect:
+1.  Check the status: `docker ps -a`
+2.  View the logs to see why it crashed:
+    ```bash
+    docker logs <CONTAINER_ID>
+    ```
+    *(Replace `<CONTAINER_ID>` with the ID from the previous command).*
 
 ---
 
 ## Option 2: Using `dotnet run` script
 
-This method runs the application directly on your machine.
+This method runs the application directly on your machine. This is often easier if Docker gives you trouble.
 
 1.  **Run the script**:
     In the root of the repository, run:
@@ -51,4 +60,4 @@ This method runs the application directly on your machine.
 *   **Firewall**: If you cannot connect, check if your MacOS Firewall is blocking incoming connections. You might need to allow the application or turn off the firewall temporarily for testing.
 *   **Database**: The application uses a local SQLite database (`school.db`).
     *   In **Option 2**, it will use the file in `SchoolManagementSystem.Web/school.db`.
-    *   In **Option 1 (Docker)**, the database is inside the container and will be reset if you delete the container. To persist data, you would need to mount a volume (e.g., `-v $(pwd)/school.db:/app/school.db`).
+    *   In **Option 1 (Docker)**, the database is inside the container. We have configured the permissions so it can be created automatically. Note that data is lost when you remove the container unless you mount a volume.
