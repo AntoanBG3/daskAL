@@ -42,7 +42,7 @@
 /* Light Theme */
 html[data-sidebar-theme="light"] {
     --sidebar-bg: #ffffff;
-    --sidebar-color: var(--slate-600);
+    --sidebar-color: var(--slate-900);
     --sidebar-active-bg: var(--slate-100);
     --sidebar-active-color: var(--primary);
     --sidebar-heading-color: var(--slate-400);
@@ -60,7 +60,7 @@ html[data-sidebar-theme="light"] .sidebar .nav-item .nav-link:hover {
 /* Navy Theme */
 html[data-sidebar-theme="navy"] {
     --sidebar-bg: #1e3a8a;
-    --sidebar-color: #bfdbfe;
+    --sidebar-color: #ffffff;
     --sidebar-active-bg: rgba(255, 255, 255, 0.1);
     --sidebar-active-color: #ffffff;
     --sidebar-heading-color: #93c5fd;
