@@ -1,0 +1,177 @@
+@page "/search"
+@using Microsoft.EntityFrameworkCore
+@using SchoolManagementSystem.Web.Data
+@using SchoolManagementSystem.Web.Models
+@using SchoolManagementSystem.Web.Models.ViewModels
+@inject SchoolDbContext DbContext
+@inject NavigationManager NavigationManager
+
+<PageTitle>Search Results - daskAL</PageTitle>
+
+<div class="container-fluid">
+    <div class="mb-4">
+        <h1 class="display-6 fw-bold">Search Results</h1>
+        <p class="text-muted">
+            Showing results for <span class="fw-bold text-dark">"@Q"</span>
+            @if (!string.IsNullOrEmpty(Type) && Type != "All")
+            {
+                <span>in <span class="fw-bold text-dark">@Type</span></span>
+            }
+        </p>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!HasResults)
+    {
+        <div class="text-center py-5">
+            <div class="fs-1 text-muted mb-3">
+                <i class="bi bi-search"></i>
+            </div>
+            <h4 class="fw-bold">No results found</h4>
+            <p class="text-muted">We couldn't find anything matching your search. Try different keywords.</p>
+            <a href="" class="btn btn-outline-primary mt-2">Back to Dashboard</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @if (Students.Any())
+            {
+                <div class="col-12">
+                    <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Students</h5>
+                </div>
+                @foreach (var s in Students)
+                {
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <div class="card-premium h-100">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="card-icon bg-light text-primary me-3" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                                    <i class="bi bi-person-circle"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">@s.FirstName @s.LastName</h6>
+                                    <small class="text-muted">ID: @s.Id</small>
+                                </div>
+                            </div>
+                            <div class="mt-auto">
+                                <a href="students/edit/@s.Id" class="btn btn-sm btn-outline w-100">View Profile</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+
+            @if (Teachers.Any())
+            {
+                <div class="col-12 mt-4">
+                    <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Teachers</h5>
+                </div>
+                @foreach (var t in Teachers)
+                {
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <div class="card-premium h-100">
+                             <div class="d-flex align-items-center mb-3">
+                                <div class="card-icon bg-light text-warning me-3" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                                    <i class="bi bi-person-badge-fill"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">@t.FirstName @t.LastName</h6>
+                                    <small class="text-muted">Teacher</small>
+                                </div>
+                            </div>
+                             <div class="mt-auto">
+                                <a href="teachers/edit/@t.Id" class="btn btn-sm btn-outline w-100">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+
+            @if (Classes.Any())
+            {
+                <div class="col-12 mt-4">
+                    <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Classes</h5>
+                </div>
+                @foreach (var c in Classes)
+                {
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <div class="card-premium h-100">
+                             <div class="d-flex align-items-center mb-3">
+                                <div class="card-icon bg-light text-info me-3" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                                    <i class="bi bi-building"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">@c.Name</h6>
+                                    <small class="text-muted">Class</small>
+                                </div>
+                            </div>
+                             <div class="mt-auto">
+                                <a href="classes/edit/@c.Id" class="btn btn-sm btn-outline w-100">Manage Class</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? Q { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? Type { get; set; }
+
+    private List<Student> Students = new();
+    private List<Teacher> Teachers = new();
+    private List<SchoolClass> Classes = new();
+    private bool IsLoading = true;
+    private bool HasResults => Students.Any() || Teachers.Any() || Classes.Any();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        IsLoading = true;
+        await PerformSearch();
+        IsLoading = false;
+    }
+
+    private async Task PerformSearch()
+    {
+        Students.Clear();
+        Teachers.Clear();
+        Classes.Clear();
+
+        if (string.IsNullOrWhiteSpace(Q)) return;
+
+        var term = Q.ToLower();
+
+        if (string.IsNullOrEmpty(Type) || Type == "All" || Type == "Students")
+        {
+            Students = await DbContext.Students
+                .Where(s => s.FirstName.ToLower().Contains(term) || s.LastName.ToLower().Contains(term))
+                .ToListAsync();
+        }
+
+        if (string.IsNullOrEmpty(Type) || Type == "All" || Type == "Teachers")
+        {
+            Teachers = await DbContext.Teachers
+                .Where(t => t.FirstName.ToLower().Contains(term) || t.LastName.ToLower().Contains(term))
+                .ToListAsync();
+        }
+
+        if (string.IsNullOrEmpty(Type) || Type == "All" || Type == "Classes")
+        {
+            Classes = await DbContext.SchoolClasses
+                .Where(c => c.Name.ToLower().Contains(term))
+                .ToListAsync();
+        }
+    }
+}
