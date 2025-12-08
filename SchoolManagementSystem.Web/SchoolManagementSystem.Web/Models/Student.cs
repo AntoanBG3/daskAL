@@ -8,14 +8,16 @@ namespace SchoolManagementSystem.Web.Models
     {
         public int Id { get; set; }
 
+        public string? UserId { get; set; }
+
         [Required]
         public string FirstName { get; set; } = string.Empty;
 
         [Required]
         public string LastName { get; set; } = string.Empty;
 
-        [Required]
-        public string Class { get; set; } = string.Empty;
+        public int? SchoolClassId { get; set; }
+        public SchoolClass? SchoolClass { get; set; }
 
         public DateTime DateOfBirth { get; set; }
 

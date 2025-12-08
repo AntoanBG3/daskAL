@@ -1,0 +1,140 @@
+@page "/my-grades"
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using SchoolManagementSystem.Web.Models.ViewModels
+@using SchoolManagementSystem.Web.Services
+@inject AuthenticationStateProvider AuthStateProvider
+@inject SchoolService SchoolService
+@attribute [Authorize(Roles = "Student")]
+
+<PageTitle>My Grades</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-journal-text me-2"></i>My Grades</h2>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (Grades.Any())
+    {
+        <div class="row">
+            @foreach (var group in Grades.GroupBy(g => g.SubjectName))
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-header bg-white border-bottom-0 pt-3">
+                            <h5 class="card-title text-primary mb-0">@group.Key</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var grade in group)
+                                {
+                                    <span class="badge fs-6 @GetGradeBadgeClass(grade.Value)">
+                                        @grade.Value
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light text-muted small">
+                            Average: @group.Average(g => g.Value).ToString("F2")
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    else
+    {
+        <div class="alert alert-info shadow-sm">
+            <i class="bi bi-info-circle-fill me-2"></i> No grades found.
+        </div>
+    }
+
+    <hr class="my-5" />
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-calendar-x me-2"></i>My Absences</h2>
+    </div>
+
+    @if (Absences.Any())
+    {
+         <div class="table-responsive shadow-sm">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var abs in Absences)
+                    {
+                        <tr>
+                            <td>@abs.Date.ToShortDateString()</td>
+                            <td>@(abs.Subject?.Name ?? "General")</td>
+                            <td>
+                                <span class="badge @(abs.IsExcused ? "bg-success" : "bg-danger")">
+                                    @(abs.IsExcused ? "Excused" : "Unexcused")
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+         <div class="alert alert-success shadow-sm">
+            <i class="bi bi-check-circle-fill me-2"></i> Perfect attendance! No absences recorded.
+        </div>
+    }
+</div>
+
+@code {
+    private List<GradeViewModel> Grades = new();
+    private List<Absence> Absences = new();
+    private bool IsLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userId))
+            {
+                var student = await SchoolService.GetStudentByUserIdAsync(userId);
+                if (student != null)
+                {
+                    Grades = await SchoolService.GetGradesForStudentAsync(student.Id);
+                    Absences = await SchoolService.GetAbsencesForStudentAsync(student.Id);
+                }
+            }
+        }
+        IsLoading = false;
+    }
+
+    private string GetGradeBadgeClass(double value)
+    {
+        return value switch
+        {
+            >= 5.50 => "bg-success",
+            >= 4.50 => "bg-info text-dark",
+            >= 3.50 => "bg-warning text-dark",
+            >= 3.00 => "bg-warning",
+            _ => "bg-danger"
+        };
+    }
+}

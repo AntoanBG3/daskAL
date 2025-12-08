@@ -1,0 +1,84 @@
+@page "/classes"
+@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@using SchoolManagementSystem.Web.Models.ViewModels
+
+<PageTitle>Classes</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>School Classes</h1>
+    <a href="classes/add" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Add New Class
+    </a>
+</div>
+
+@if (classes == null)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else if (!classes.Any())
+{
+    <div class="alert alert-info shadow-sm" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i> No classes found. Click "Add New Class" to create one.
+    </div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Name</th>
+                            <th>Assigned Subjects</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in classes)
+                        {
+                            <tr>
+                                <td class="ps-4 align-middle fw-bold">@c.Name</td>
+                                <td class="align-middle">
+                                    @if(c.AssignedSubjects.Any())
+                                    {
+                                        @foreach(var subject in c.AssignedSubjects)
+                                        {
+                                            <span class="badge bg-secondary me-1">@subject</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fst-italic">No subjects assigned</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4 align-middle">
+                                    <div class="btn-group">
+                                        <a href="classes/edit/@c.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil-fill me-1"></i> Manage
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<SchoolClassViewModel>? classes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        classes = await SchoolService.GetAllClassesAsync();
+    }
+}

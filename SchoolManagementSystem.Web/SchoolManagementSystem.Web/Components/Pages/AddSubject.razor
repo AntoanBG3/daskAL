@@ -1,0 +1,56 @@
+@page "/subjects/add"
+@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject NavigationManager NavigationManager
+@using SchoolManagementSystem.Web.Models.ViewModels
+
+<h3>Add New Subject</h3>
+
+<EditForm Model="@subject" OnValidSubmit="HandleValidSubmit" FormName="AddSubjectForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="name" class="form-label">Subject Name</label>
+        <InputText id="name" class="form-control" @bind-Value="subject.Name" />
+    </div>
+
+    <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <InputText id="description" class="form-control" @bind-Value="subject.Description" />
+    </div>
+    
+    <div class="mb-3">
+        <label for="teacher" class="form-label">Assigned Teacher</label>
+        <InputSelect id="teacher" class="form-select" @bind-Value="subject.TeacherId">
+            <option value="">-- Unassigned --</option>
+            @if (teachers != null)
+            {
+                @foreach (var teacher in teachers)
+                {
+                    <option value="@teacher.Id">@teacher.FullName</option>
+                }
+            }
+        </InputSelect>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Subject</button>
+    <a href="/subjects" class="btn btn-secondary">Cancel</a>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    private SubjectViewModel subject { get; set; } = new();
+    
+    private List<TeacherViewModel>? teachers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        teachers = await SchoolService.GetAllTeachersAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await SchoolService.AddSubjectAsync(subject);
+        NavigationManager.NavigateTo("/subjects");
+    }
+}

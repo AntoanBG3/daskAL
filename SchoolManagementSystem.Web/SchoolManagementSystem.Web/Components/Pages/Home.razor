@@ -1,79 +1,201 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
 
-<PageTitle>School Dashboard</PageTitle>
+<PageTitle>Dashboard - daskAL</PageTitle>
 
-<div class="container mt-5">
-    <div class="row text-center mb-5">
-        <div class="col">
-            <h1 class="display-4 fw-bold text-primary">Welcome to daskAL</h1>
-            <p class="lead text-muted">Manage your school efficiently with our modern web platform.</p>
-        </div>
-    </div>
-
-    <div class="row g-4 justify-content-center">
-        <!-- Students Card -->
-        <div class="col-md-3">
-            <div class="card h-100 shadow-sm border-0 hover-effect">
-                <div class="card-body text-center">
-                    <div class="fs-1 text-primary mb-3">
-                        <i class="bi bi-people-fill"></i>
-                    </div>
-                    <h5 class="card-title fw-bold">Students</h5>
-                    <p class="card-text text-muted small">Manage student profiles, registrations, and details.</p>
-                    <a href="students" class="btn btn-outline-primary stretched-link">View Students</a>
+<AuthorizeView>
+    <Authorized>
+        <div class="container mt-4">
+            <div class="row mb-4">
+                <div class="col">
+                    <h1 class="display-5 fw-bold text-primary">
+                        <i class="bi bi-speedometer2 me-2"></i>Welcome, @context.User.Identity?.Name!
+                    </h1>
+                    <p class="lead text-muted">Here's your personalized dashboard.</p>
                 </div>
             </div>
-        </div>
 
-        <!-- Teachers Card -->
-        <div class="col-md-3">
-            <div class="card h-100 shadow-sm border-0 hover-effect">
-                <div class="card-body text-center">
-                    <div class="fs-1 text-success mb-3">
-                        <i class="bi bi-person-badge-fill"></i>
+            <AuthorizeView Roles="Admin" Context="adminContext">
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <div class="alert alert-primary d-flex align-items-center" role="alert">
+                            <i class="bi bi-shield-check fs-4 me-3"></i>
+                            <div>
+                                <strong>Administrator Access</strong><br>
+                                <small>You have full access to manage all school resources.</small>
+                            </div>
+                        </div>
                     </div>
-                    <h5 class="card-title fw-bold">Teachers</h5>
-                    <p class="card-text text-muted small">View teachers and assign their subjects.</p>
-                    <a href="teachers" class="btn btn-outline-success stretched-link">View Teachers</a>
                 </div>
-            </div>
-        </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0 hover-effect">
+                            <div class="card-body text-center">
+                                <div class="fs-1 text-primary mb-3">
+                                    <i class="bi bi-building"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">Classes</h5>
+                                <p class="card-text text-muted small">Manage school classes and schedules.</p>
+                                <a href="classes" class="btn btn-outline-primary stretched-link">Manage</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0 hover-effect">
+                            <div class="card-body text-center">
+                                <div class="fs-1 text-success mb-3">
+                                    <i class="bi bi-people-fill"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">Students</h5>
+                                <p class="card-text text-muted small">Manage student profiles and data.</p>
+                                <a href="students" class="btn btn-outline-success stretched-link">Manage</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0 hover-effect">
+                            <div class="card-body text-center">
+                                <div class="fs-1 text-warning mb-3">
+                                    <i class="bi bi-person-badge-fill"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">Teachers</h5>
+                                <p class="card-text text-muted small">Manage teacher assignments.</p>
+                                <a href="teachers" class="btn btn-outline-warning stretched-link">Manage</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0 hover-effect">
+                            <div class="card-body text-center">
+                                <div class="fs-1 text-danger mb-3">
+                                    <i class="bi bi-book-fill"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">Subjects</h5>
+                                <p class="card-text text-muted small">Manage curriculum subjects.</p>
+                                <a href="subjects" class="btn btn-outline-danger stretched-link">Manage</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </AuthorizeView>
 
-        <!-- Subjects Card -->
-        <div class="col-md-3">
-            <div class="card h-100 shadow-sm border-0 hover-effect">
-                <div class="card-body text-center">
-                    <div class="fs-1 text-warning mb-3">
-                        <i class="bi bi-book-fill"></i>
+            <AuthorizeView Roles="Teacher" Context="teacherContext">
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <div class="alert alert-success d-flex align-items-center" role="alert">
+                            <i class="bi bi-person-badge fs-4 me-3"></i>
+                            <div>
+                                <strong>Teacher Dashboard</strong><br>
+                                <small>Manage grades and communicate with students.</small>
+                            </div>
+                        </div>
                     </div>
-                    <h5 class="card-title fw-bold">Subjects</h5>
-                    <p class="card-text text-muted small">Organize curriculum and subject allocations.</p>
-                    <a href="subjects" class="btn btn-outline-warning stretched-link">View Subjects</a>
                 </div>
-            </div>
-        </div>
 
-        <!-- Grades Card -->
-        <div class="col-md-3">
-            <div class="card h-100 shadow-sm border-0 hover-effect">
-                <div class="card-body text-center">
-                    <div class="fs-1 text-danger mb-3">
-                        <i class="bi bi-graph-up"></i>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm border-0 hover-effect">
+                            <div class="card-body text-center">
+                                <div class="fs-1 text-primary mb-3">
+                                    <i class="bi bi-clipboard-data"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">Grades</h5>
+                                <p class="card-text text-muted small">View and manage student grades.</p>
+                                <a href="grades" class="btn btn-outline-primary stretched-link">Open Grades</a>
+                            </div>
+                        </div>
                     </div>
-                    <h5 class="card-title fw-bold">Grades</h5>
-                    <p class="card-text text-muted small">Record and track student performance.</p>
-                    <a href="grades" class="btn btn-outline-danger stretched-link">Manage Grades</a>
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm border-0 hover-effect">
+                            <div class="card-body text-center">
+                                <div class="fs-1 text-success mb-3">
+                                    <i class="bi bi-envelope"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">Messages</h5>
+                                <p class="card-text text-muted small">Communicate with students and parents.</p>
+                                <a href="messages" class="btn btn-outline-success stretched-link">Open Messages</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Student" Context="studentContext">
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <div class="alert alert-info d-flex align-items-center" role="alert">
+                            <i class="bi bi-mortarboard fs-4 me-3"></i>
+                            <div>
+                                <strong>Student Dashboard</strong><br>
+                                <small>View your grades, profile, and connect with teachers.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0 hover-effect">
+                            <div class="card-body text-center">
+                                <div class="fs-1 text-primary mb-3">
+                                    <i class="bi bi-person-circle"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">My Profile</h5>
+                                <p class="card-text text-muted small">View your personal information.</p>
+                                <a href="my-profile" class="btn btn-outline-primary stretched-link">View</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0 hover-effect">
+                            <div class="card-body text-center">
+                                <div class="fs-1 text-success mb-3">
+                                    <i class="bi bi-journal-check"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">My Grades</h5>
+                                <p class="card-text text-muted small">Check your academic performance.</p>
+                                <a href="my-grades" class="btn btn-outline-success stretched-link">View</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0 hover-effect">
+                            <div class="card-body text-center">
+                                <div class="fs-1 text-warning mb-3">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">Teachers</h5>
+                                <p class="card-text text-muted small">View your teachers' information.</p>
+                                <a href="teachers-list" class="btn btn-outline-warning stretched-link">View</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0 hover-effect">
+                            <div class="card-body text-center">
+                                <div class="fs-1 text-info mb-3">
+                                    <i class="bi bi-envelope"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">Messages</h5>
+                                <p class="card-text text-muted small">Contact teachers and staff.</p>
+                                <a href="messages" class="btn btn-outline-info stretched-link">Open</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </AuthorizeView>
         </div>
-    </div>
-</div>
+    </Authorized>
+</AuthorizeView>
 
 <style>
     .hover-effect {
-        transition: transform 0.2s ease-in-out;
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     }
     .hover-effect:hover {
         transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
     }
 </style>

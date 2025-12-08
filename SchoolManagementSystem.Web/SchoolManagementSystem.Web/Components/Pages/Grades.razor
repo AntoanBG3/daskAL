@@ -1,6 +1,9 @@
 @page "/grades"
-@inject SchoolService SchoolService
+@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
 @inject NavigationManager Navigation
+@using SchoolManagementSystem.Web.Models.ViewModels
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Teacher,Admin")]
 
 <PageTitle>Grades</PageTitle>
 
@@ -9,13 +12,13 @@
 <div class="row mb-4">
     <div class="col-md-6">
         <label class="form-label">Select Student:</label>
-        <select class="form-select" @onchange="LoadStudentGrades">
+        <select class="form-select" @onchange="LoadStudentData">
             <option value="">-- Select Student --</option>
             @if (students != null)
             {
                 foreach (var s in students)
                 {
-                    <option value="@s.Id">@s.FullName (@s.Class)</option>
+                    <option value="@s.Id">@s.FirstName @s.LastName (@s.Class)</option>
                 }
             }
         </select>
@@ -24,14 +27,14 @@
 
 @if (selectedStudent != null)
 {
-    <div class="card mb-4">
-        <div class="card-header">
-            <h4>Grades for @selectedStudent.FullName</h4>
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Grades for @selectedStudent.FirstName @selectedStudent.LastName</h4>
         </div>
         <div class="card-body">
-            @if (selectedStudent.Grades.Any())
+            @if (studentGrades != null && studentGrades.Any())
             {
-                <table class="table table-sm">
+                <table class="table table-striped">
                     <thead>
                         <tr>
                             <th>Subject</th>
@@ -39,7 +42,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var grade in selectedStudent.Grades)
+                        @foreach (var grade in studentGrades)
                         {
                             <tr>
                                 <td>@grade.SubjectName</td>
@@ -51,21 +54,31 @@
             }
             else
             {
-                <p>No grades recorded yet.</p>
+                <p class="text-muted">No grades recorded yet.</p>
             }
 
             <hr />
-            <h5>Record New Grade</h5>
             <EditForm Model="@newGrade" OnValidSubmit="HandleAddGrade" FormName="AddGradeForm">
                 <DataAnnotationsValidator />
                 <div class="row g-3 align-items-end">
                     <div class="col-md-4">
                         <label class="form-label">Subject</label>
-                        <InputText class="form-control" @bind-Value="newGrade.SubjectName" placeholder="e.g. Math" />
+                        <InputSelect class="form-select" @bind-Value="newGrade.SubjectId">
+                            <option value="">-- Select Subject --</option>
+                            @if(availableSubjects != null)
+                            {
+                                foreach(var sub in availableSubjects)
+                                {
+                                    <option value="@sub.Id">@sub.Name (@sub.TeacherName)</option>
+                                }
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => newGrade.SubjectId)" />
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Grade (2-6)</label>
                         <InputNumber class="form-control" @bind-Value="newGrade.Value" min="2" max="6" />
+                        <ValidationMessage For="@(() => newGrade.Value)" />
                     </div>
                     <div class="col-md-2">
                         <button type="submit" class="btn btn-success">Add</button>
@@ -77,40 +90,54 @@
 }
 
 @code {
-    private List<Student>? students;
-    private Student? selectedStudent;
+    private List<StudentViewModel>? students;
+    private StudentViewModel? selectedStudent;
+    private List<GradeViewModel>? studentGrades;
+    private List<SubjectViewModel>? availableSubjects;
     
     [SupplyParameterFromForm]
-    private Grade newGrade { get; set; } = new();
+    private GradeViewModel newGrade { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
         students = await SchoolService.GetAllStudentsAsync();
     }
 
-    private async Task LoadStudentGrades(ChangeEventArgs e)
+    private async Task LoadStudentData(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out int studentId))
         {
             selectedStudent = await SchoolService.GetStudentByIdAsync(studentId);
-            newGrade = new Grade { StudentId = studentId, Value = 6 }; // Reset form
+            if(selectedStudent != null)
+            {
+               // Fetch Grades
+               studentGrades = await SchoolService.GetGradesForStudentAsync(studentId);
+
+               // Fetch Available Subjects for this student's class
+               availableSubjects = await SchoolService.GetAvailableSubjectsForStudentAsync(studentId);
+               
+               newGrade = new GradeViewModel { StudentId = studentId, Value = 6 }; 
+            }
         }
         else
         {
             selectedStudent = null;
+            availableSubjects = null;
+            studentGrades = null;
         }
     }
 
     private async Task HandleAddGrade()
     {
-        if (selectedStudent != null)
+        if (selectedStudent != null && newGrade.SubjectId.HasValue)
         {
             newGrade.StudentId = selectedStudent.Id;
             await SchoolService.AddGradeAsync(newGrade);
             
             // Refresh
-            selectedStudent = await SchoolService.GetStudentByIdAsync(selectedStudent.Id);
-            newGrade = new Grade { StudentId = selectedStudent!.Id, Value = 6, SubjectName = "" };
+            studentGrades = await SchoolService.GetGradesForStudentAsync(selectedStudent.Id);
+            
+            newGrade = new GradeViewModel { StudentId = selectedStudent.Id, Value = 6 };
         }
     }
 }
