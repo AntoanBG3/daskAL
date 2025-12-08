@@ -95,21 +95,30 @@ app.MapPost("/logout", async (SignInManager<User> signInManager) =>
 });
 
 // Database Initialization
-using (var scope = app.Services.CreateScope())
+try 
 {
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<SchoolDbContext>();
-    // context.Database.EnsureCreated(); // EnsureCreated bypasses migrations, use Migrate if using migrations, or just EnsureCreated for quick dev
-    context.Database.Migrate(); 
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        var context = services.GetRequiredService<SchoolDbContext>();
+        // context.Database.EnsureCreated(); // EnsureCreated bypasses migrations, use Migrate if using migrations, or just EnsureCreated for quick dev
+        context.Database.Migrate(); 
 
-    await DbSeeder.SeedRolesAndUsersAsync(services);
+        await DbSeeder.SeedRolesAndUsersAsync(services);
 
-    // Optional: Seed Legacy Data
-    /* 
-    var service = services.GetRequiredService<SchoolService>();
-    string jsonPath = "school_data.json"; 
-    await service.ImportFromLegacyJsonAsync(jsonPath);
-    */
+        // Optional: Seed Legacy Data
+        /* 
+        var service = services.GetRequiredService<SchoolService>();
+        string jsonPath = "school_data.json"; 
+        await service.ImportFromLegacyJsonAsync(jsonPath);
+        */
+    }
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogCritical(ex, "An error occurred while initializing the database.");
+    throw; // Re-throw to ensure the process exits, but detailed log is captured first
 }
 
 app.Run();
