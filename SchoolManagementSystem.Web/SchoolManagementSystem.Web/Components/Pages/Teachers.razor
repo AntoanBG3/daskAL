@@ -1,5 +1,8 @@
 @page "/teachers"
-@inject SchoolService SchoolService
+@attribute [Authorize(Roles = "Admin")]
+@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject IJSRuntime JSRuntime
+@using SchoolManagementSystem.Web.Models.ViewModels
 
 <PageTitle>Teachers</PageTitle>
 
@@ -8,8 +11,7 @@
 <p>List of teachers and their assigned subjects.</p>
 
 <div class="mb-3">
-    <!-- Future: Add Teacher functionality -->
-    <button class="btn btn-primary" disabled>Add New Teacher (Coming Soon)</button>
+    <a href="teachers/add" class="btn btn-primary">Add New Teacher</a>
 </div>
 
 @if (teachers == null)
@@ -18,12 +20,13 @@
 }
 else
 {
-    <table class="table table-striped">
+    <table class="table table-striped table-hover">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Name</th>
                 <th>Subjects</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -35,12 +38,16 @@ else
                     <td>
                         @if (teacher.TeachingSubjects.Any())
                         {
-                            <span>@string.Join(", ", teacher.TeachingSubjects.Select(s => s.Name))</span>
+                            <span class="badge bg-info text-dark me-1">@string.Join("</span><span class='badge bg-info text-dark me-1'>", teacher.TeachingSubjects)</span>
                         }
                         else
                         {
-                            <span class="text-muted">No subjects assigned</span>
+                            <span class="text-muted small">No subjects assigned</span>
                         }
+                    </td>
+                    <td>
+                        <a href="/teachers/edit/@teacher.Id" class="btn btn-sm btn-warning me-2">Edit</a>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteTeacher(teacher.Id)">Delete</button>
                     </td>
                 </tr>
             }
@@ -49,10 +56,24 @@ else
 }
 
 @code {
-    private List<Teacher>? teachers;
+    private List<TeacherViewModel>? teachers;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadTeachers();
+    }
+
+    private async Task LoadTeachers()
+    {
         teachers = await SchoolService.GetAllTeachersAsync();
+    }
+
+    private async Task DeleteTeacher(int id)
+    {
+         if (await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this teacher?"))
+        {
+            await SchoolService.DeleteTeacherAsync(id);
+            await LoadTeachers();
+        }
     }
 }

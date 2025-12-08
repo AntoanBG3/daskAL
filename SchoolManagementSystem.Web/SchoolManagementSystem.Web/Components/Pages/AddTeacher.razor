@@ -1,0 +1,35 @@
+@page "/teachers/add"
+@inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
+@inject NavigationManager NavigationManager
+@using SchoolManagementSystem.Web.Models.ViewModels
+
+<h3>Add New Teacher</h3>
+
+<EditForm Model="@teacher" OnValidSubmit="HandleValidSubmit" FormName="AddTeacherForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="firstName" class="form-label">First Name</label>
+        <InputText id="firstName" class="form-control" @bind-Value="teacher.FirstName" />
+    </div>
+
+    <div class="mb-3">
+        <label for="lastName" class="form-label">Last Name</label>
+        <InputText id="lastName" class="form-control" @bind-Value="teacher.LastName" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Teacher</button>
+    <a href="/teachers" class="btn btn-secondary">Cancel</a>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    private TeacherViewModel teacher { get; set; } = new();
+
+    private async Task HandleValidSubmit()
+    {
+        await SchoolService.AddTeacherAsync(teacher);
+        NavigationManager.NavigateTo("/teachers");
+    }
+}

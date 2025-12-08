@@ -13,5 +13,7 @@ namespace SchoolManagementSystem.Web.Models
 
         public int? TeacherId { get; set; }
         public Teacher? Teacher { get; set; }
+
+        public List<ClassSubject> ClassSubjects { get; set; } = new();
     }
 }

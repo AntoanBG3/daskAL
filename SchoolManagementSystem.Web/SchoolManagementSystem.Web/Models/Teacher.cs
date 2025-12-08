@@ -7,6 +7,8 @@ namespace SchoolManagementSystem.Web.Models
     {
         public int Id { get; set; }
 
+        public string? UserId { get; set; }
+
         [Required]
         public string FirstName { get; set; } = string.Empty;
 

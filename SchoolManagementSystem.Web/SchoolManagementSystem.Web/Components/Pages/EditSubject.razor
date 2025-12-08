@@ -1,7 +1,8 @@
 @page "/subjects/edit/{Id:int}"
+@attribute [Authorize(Roles = "Admin,Teacher")]
 @inject SchoolManagementSystem.Web.Services.SchoolService SchoolService
 @inject NavigationManager NavigationManager
-@using SchoolManagementSystem.Web.Models
+@using SchoolManagementSystem.Web.Models.ViewModels
 
 <h3>Edit Subject</h3>
 
@@ -46,9 +47,9 @@ else
     public int Id { get; set; }
 
     [SupplyParameterFromForm]
-    private Subject? subject { get; set; }
+    private SubjectViewModel? subject { get; set; }
     
-    private List<Teacher>? teachers;
+    private List<TeacherViewModel>? teachers;
 
     protected override async Task OnInitializedAsync()
     {

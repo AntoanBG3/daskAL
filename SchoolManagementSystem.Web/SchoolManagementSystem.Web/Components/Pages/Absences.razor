@@ -1,0 +1,145 @@
+@page "/absences"
+@using SchoolManagementSystem.Web.Models.ViewModels
+@using Microsoft.AspNetCore.Authorization
+@using SchoolManagementSystem.Web.Services
+@inject SchoolService SchoolService
+@attribute [Authorize(Roles = "Teacher,Admin")]
+
+<PageTitle>Absences</PageTitle>
+
+<h1>Student Absences</h1>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <label class="form-label">Select Student:</label>
+        <select class="form-select" @onchange="LoadStudentData">
+            <option value="">-- Select Student --</option>
+            @if (students != null)
+            {
+                foreach (var s in students)
+                {
+                    <option value="@s.Id">@s.FirstName @s.LastName (@s.Class)</option>
+                }
+            }
+        </select>
+    </div>
+</div>
+
+@if (selectedStudent != null)
+{
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">Absences for @selectedStudent.FirstName @selectedStudent.LastName</h4>
+        </div>
+        <div class="card-body">
+            @if (studentAbsences != null && studentAbsences.Any())
+            {
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Subject</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var abs in studentAbsences)
+                        {
+                            <tr>
+                                <td>@abs.Date.ToShortDateString()</td>
+                                <td>@(abs.Subject?.Name ?? "General")</td>
+                                <td>
+                                    <span class="badge @(abs.IsExcused ? "bg-success" : "bg-danger")">
+                                        @(abs.IsExcused ? "Excused" : "Unexcused")
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No absences recorded.</p>
+            }
+
+            <hr />
+            <h5>Add Absence</h5>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Subject (Optional)</label>
+                     <select class="form-select" @bind="newAbsenceSubjectId">
+                        <option value="">-- General / All Day --</option>
+                        @if(availableSubjects != null)
+                        {
+                            foreach(var sub in availableSubjects)
+                            {
+                                <option value="@sub.Id">@sub.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" @bind="newAbsenceIsExcused" id="excusedCheck">
+                        <label class="form-check-label" for="excusedCheck">
+                            Is Excused?
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-danger" @onclick="HandleAddAbsence">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<StudentViewModel>? students;
+    private StudentViewModel? selectedStudent;
+    private List<Absence>? studentAbsences;
+    private List<SubjectViewModel>? availableSubjects;
+
+    private int? newAbsenceSubjectId;
+    private bool newAbsenceIsExcused = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        students = await SchoolService.GetAllStudentsAsync();
+    }
+
+    private async Task LoadStudentData(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int studentId))
+        {
+            selectedStudent = await SchoolService.GetStudentByIdAsync(studentId);
+            if(selectedStudent != null)
+            {
+               studentAbsences = await SchoolService.GetAbsencesForStudentAsync(studentId);
+               availableSubjects = await SchoolService.GetAvailableSubjectsForStudentAsync(studentId);
+               newAbsenceSubjectId = null;
+               newAbsenceIsExcused = false;
+            }
+        }
+        else
+        {
+            selectedStudent = null;
+            availableSubjects = null;
+            studentAbsences = null;
+        }
+    }
+
+    private async Task HandleAddAbsence()
+    {
+        if (selectedStudent != null)
+        {
+            await SchoolService.AddAbsenceAsync(selectedStudent.Id, newAbsenceSubjectId, newAbsenceIsExcused);
+            
+            // Refresh
+            studentAbsences = await SchoolService.GetAbsencesForStudentAsync(selectedStudent.Id);
+            newAbsenceSubjectId = null;
+            newAbsenceIsExcused = false;
+        }
+    }
+}

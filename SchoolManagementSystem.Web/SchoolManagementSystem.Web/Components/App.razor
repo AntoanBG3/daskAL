@@ -10,12 +10,32 @@
     <link rel="stylesheet" href="@Assets["SchoolManagementSystem.Web.styles.css"]" />
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
-    <HeadOutlet />
+    <HeadOutlet @rendermode="PageRenderMode" />
 </head>
 
 <body>
-    <Routes />
+    <Routes @rendermode="PageRenderMode" />
     <script src="_framework/blazor.web.js"></script>
 </body>
 
 </html>
+
+@code {
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
+    private IComponentRenderMode? PageRenderMode
+    {
+        get
+        {
+            var path = HttpContext?.Request.Path.Value ?? "";
+            if (path.StartsWith("/login", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("/register", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("/logout", StringComparison.OrdinalIgnoreCase))
+            {
+                return null; // Static SSR for auth pages
+            }
+            return RenderMode.InteractiveServer;
+        }
+    }
+}

@@ -3,18 +3,57 @@ using SchoolManagementSystem.Web.Components;
 using SchoolManagementSystem.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using SchoolManagementSystem.Web.Services;
+using Microsoft.AspNetCore.Identity;
+using SchoolManagementSystem.Web.Models.Auth;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<SchoolDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-    
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddIdentity<User, Role>(options => 
+    {
+        options.SignIn.RequireConfirmedAccount = false;
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequiredLength = 8;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.AllowedForNewUsers = true;
+        options.User.RequireUniqueEmail = true;
+    })
+    .AddEntityFrameworkStores<SchoolDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+    options.SlidingExpiration = true;
+    options.LoginPath = "/login";
+    options.AccessDeniedPath = "/access-denied";
+});
+
 builder.Services.AddScoped<SchoolService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<User>>();
+
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -30,10 +69,13 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-
+// app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 app.UseAntiforgery();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
@@ -41,13 +83,22 @@ app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(SchoolManagementSystem.Web.Client._Imports).Assembly);
 
-// Seed Data
+// Database Initialization
 using (var scope = app.Services.CreateScope())
 {
-    var service = scope.ServiceProvider.GetRequiredService<SchoolService>();
-    // Assuming the file is in the parent directory of the solution or hardcoded for now suitable for the user's workspace
-    string jsonPath = "/Users/antoanpeychev/Projects/daskAL/school_data.json"; 
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<SchoolDbContext>();
+    // context.Database.EnsureCreated(); // EnsureCreated bypasses migrations, use Migrate if using migrations, or just EnsureCreated for quick dev
+    context.Database.Migrate(); 
+
+    await DbSeeder.SeedRolesAndUsersAsync(services);
+
+    // Optional: Seed Legacy Data
+    /* 
+    var service = services.GetRequiredService<SchoolService>();
+    string jsonPath = "school_data.json"; 
     await service.ImportFromLegacyJsonAsync(jsonPath);
+    */
 }
 
 app.Run();
