@@ -67,8 +67,6 @@ For testing purposes, the system is pre-seeded with the following accounts:
 | Role | Email | Password |
 | :--- | :--- | :--- |
 | **Admin** | `admin@school.com` | `Admin123!` |
-| **Teacher** | `teacher@school.com` | `Teacher123!` |
-| **Student** | `student@school.com` | `Student123!` |
 
 > **Note:** Please change these credentials or delete these accounts in a production environment.
 
