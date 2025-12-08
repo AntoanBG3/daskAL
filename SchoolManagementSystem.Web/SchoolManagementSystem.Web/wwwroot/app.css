@@ -29,6 +29,41 @@
     /* Components */
     --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+    /* Default Theme (Dark) - already set in root but explicit here for reference */
+    --sidebar-bg-default: var(--slate-900);
+    --sidebar-color-default: var(--slate-300);
+    --sidebar-active-bg-default: rgba(255, 255, 255, 0.1);
+    --sidebar-active-bg-default: rgba(255, 255, 255, 0.1);
+    --sidebar-active-color-default: #fff;
+    --sidebar-heading-color-default: #94a3b8;
+}
+
+/* Light Theme */
+html[data-sidebar-theme="light"] {
+    --sidebar-bg: #ffffff;
+    --sidebar-color: var(--slate-600);
+    --sidebar-active-bg: var(--slate-100);
+    --sidebar-active-color: var(--primary);
+    --sidebar-heading-color: var(--slate-400);
+}
+
+html[data-sidebar-theme="light"] .sidebar {
+    border-right: 1px solid var(--slate-200);
+}
+
+html[data-sidebar-theme="light"] .sidebar .nav-item .nav-link:hover {
+    background-color: var(--slate-50);
+    color: var(--slate-900);
+}
+
+/* Navy Theme */
+html[data-sidebar-theme="navy"] {
+    --sidebar-bg: #1e3a8a;
+    --sidebar-color: #bfdbfe;
+    --sidebar-active-bg: rgba(255, 255, 255, 0.1);
+    --sidebar-active-color: #ffffff;
+    --sidebar-heading-color: #93c5fd;
 }
 
 html,
@@ -154,25 +189,35 @@ a:hover {
     padding: 1rem 0;
 }
 
+.sidebar-heading {
+    text-transform: uppercase;
+    font-size: 0.70rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--sidebar-heading-color, var(--sidebar-heading-color-default));
+}
+
 .sidebar .nav-item .nav-link {
     display: flex;
     align-items: center;
     padding: 0.75rem 1.5rem;
-    color: var(--sidebar-color);
+    color: var(--sidebar-color, var(--sidebar-color-default));
     border-radius: 0;
     transition: all 0.15s;
     font-size: 0.95rem;
+    font-weight: 500;
 }
 
 .sidebar .nav-item .nav-link:hover {
-    color: #fff;
-    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--sidebar-active-color, var(--sidebar-active-color-default));
+    background-color: var(--sidebar-active-bg, var(--sidebar-active-bg-default));
 }
 
 .sidebar .nav-item .nav-link.active {
-    color: var(--sidebar-active-color);
-    background-color: var(--sidebar-active-bg);
+    color: var(--sidebar-active-color, var(--sidebar-active-color-default));
+    background-color: var(--sidebar-active-bg, var(--sidebar-active-bg-default));
     border-right: 3px solid var(--primary);
+    font-weight: 600;
 }
 
 .sidebar .nav-item .nav-link i {

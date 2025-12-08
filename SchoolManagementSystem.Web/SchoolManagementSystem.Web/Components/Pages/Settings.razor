@@ -1,0 +1,126 @@
+@page "/settings"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Settings - daskAL</PageTitle>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="d-flex align-items-center mb-4">
+            <h1 class="h3 mb-0 me-3">Settings</h1>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-palette me-2"></i> Appearance</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <label class="form-label fw-semibold mb-3">Sidebar Theme</label>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="theme-option @(currentTheme == "default" ? "active" : "")" @onclick="@(() => SetTheme("default"))">
+                                <div class="theme-preview default-preview">
+                                    <div class="preview-sidebar"></div>
+                                    <div class="preview-content"></div>
+                                </div>
+                                <div class="theme-label">Default (Dark)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="theme-option @(currentTheme == "light" ? "active" : "")" @onclick="@(() => SetTheme("light"))">
+                                <div class="theme-preview light-preview">
+                                    <div class="preview-sidebar"></div>
+                                    <div class="preview-content"></div>
+                                </div>
+                                <div class="theme-label">Light</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="theme-option @(currentTheme == "navy" ? "active" : "")" @onclick="@(() => SetTheme("navy"))">
+                                <div class="theme-preview navy-preview">
+                                    <div class="preview-sidebar"></div>
+                                    <div class="preview-content"></div>
+                                </div>
+                                <div class="theme-label">Navy Blue</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .theme-option {
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 0.75rem;
+        border: 2px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .theme-option:hover {
+        background-color: var(--slate-100);
+    }
+
+    .theme-option.active {
+        border-color: var(--primary);
+        background-color: rgba(79, 70, 229, 0.05);
+    }
+
+    .theme-label {
+        text-align: center;
+        margin-top: 0.5rem;
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: var(--slate-700);
+    }
+
+    .theme-preview {
+        height: 100px;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        border: 1px solid var(--slate-200);
+        display: flex;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .preview-sidebar {
+        width: 30%;
+        height: 100%;
+    }
+
+    .preview-content {
+        width: 70%;
+        height: 100%;
+        background-color: #f8fafc;
+    }
+
+    /* Previews */
+    .default-preview .preview-sidebar { background-color: #0f172a; }
+    .light-preview .preview-sidebar { background-color: #ffffff; border-right: 1px solid #e2e8f0; }
+    .navy-preview .preview-sidebar { background-color: #1e3a8a; }
+</style>
+
+@code {
+    private string currentTheme = "default";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            currentTheme = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "sidebarTheme") ?? "default";
+            StateHasChanged();
+        }
+    }
+
+    private async Task SetTheme(string theme)
+    {
+        currentTheme = theme;
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "sidebarTheme", theme);
+        await JSRuntime.InvokeVoidAsync("document.documentElement.setAttribute", "data-sidebar-theme", theme);
+    }
+}
