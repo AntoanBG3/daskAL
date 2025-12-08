@@ -4,8 +4,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SchoolManagementSystem.Web", "SchoolManagementSystem.Web", "{9CB38FFA-0FB0-46A3-94E0-3EA8D8E51EDA}"
-EndProject
+
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchoolManagementSystem.Web", "SchoolManagementSystem.Web\SchoolManagementSystem.Web\SchoolManagementSystem.Web.csproj", "{C2491FF3-45F1-4315-BB90-377E17E95C77}"
 EndProject
 Global

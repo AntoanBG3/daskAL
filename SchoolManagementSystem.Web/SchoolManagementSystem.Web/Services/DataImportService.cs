@@ -53,7 +53,7 @@ namespace SchoolManagementSystem.Web.Services
 
                                  // Logic: Find a teacher who teaches this subject
                                  var teacher = teachers.FirstOrDefault(t =>
-                                     schoolData.Teachers.Any(lt => lt.FirstName == t.FirstName && lt.LastName == t.LastName && lt.TeachingSubjects.Contains(s.Name))
+                                     schoolData.Teachers != null && schoolData.Teachers.Any(lt => lt.FirstName == t.FirstName && lt.LastName == t.LastName && lt.TeachingSubjects.Contains(s.Name))
                                  );
 
                                  _context.Subjects.Add(new Subject
