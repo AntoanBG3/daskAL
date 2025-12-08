@@ -1,4 +1,4 @@
-﻿<div class="nav-scrollable">
+<div class="nav-scrollable">
     <ul class="nav flex-column">
         <AuthorizeView>
             <Authorized>
@@ -12,6 +12,12 @@
                 <AuthorizeView Roles="Admin" Context="adminContext">
                     <li class="nav-item mt-3">
                         <div class="sidebar-heading px-3 mb-2">Administration</div>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="admin/approvals">
+                            <i class="bi bi-check-circle"></i>
+                            <span>Approvals</span>
+                        </NavLink>
                     </li>
                     <li class="nav-item">
                         <NavLink class="nav-link" href="classes">

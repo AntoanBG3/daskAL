@@ -7,6 +7,7 @@
 @using Microsoft.AspNetCore.Identity
 @using SchoolManagementSystem.Web.Models.Auth
 @inject UserManager<User> UserManager
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 
 <h3>Add New Teacher</h3>
 
@@ -54,6 +55,8 @@
         string? userId = null;
         if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password))
         {
+            // We use RegisterAsync but we need to intercept to activate the user immediately
+            // because Admin is creating this account.
             var result = await AuthService.RegisterAsync(new RegisterRequest {
                 Email = email,
                 Password = password,
@@ -63,22 +66,60 @@
 
             if (result.Success)
             {
-                 // Find the user to get ID. RegisterAsync doesn't return ID currently.
                  var user = await UserManager.FindByEmailAsync(email);
                  if (user != null)
                  {
                      userId = user.Id;
-                     // Ensure role is Teacher (Register defaults to Student)
+
+                     // 1. Activate Account immediately
+                     user.IsActive = true;
+                     await UserManager.UpdateAsync(user);
+
+                     // 2. Fix Roles (Remove Student, Add Teacher)
+                     if (await UserManager.IsInRoleAsync(user, "Student"))
+                     {
+                         await UserManager.RemoveFromRoleAsync(user, "Student");
+                     }
+
                      if (!await UserManager.IsInRoleAsync(user, "Teacher"))
                      {
                          await UserManager.AddToRoleAsync(user, "Teacher");
-                         await UserManager.RemoveFromRoleAsync(user, "Student");
                      }
+
+                     // 3. RegisterAsync creates a pending Student entity. We should remove that.
+                     // The teacher entity is created by TeacherService.AddTeacherAsync below.
+                     // We don't want a stray Student record for this teacher.
+                     var dbContext = (SchoolManagementSystem.Web.Data.SchoolDbContext)TeacherService.GetType()
+                         .GetField("_context", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                         ?.GetValue(TeacherService)!;
+
+                     // Since I cannot access _context easily if private, let's inject DbContext or use a hack.
+                     // Wait, I can inject DbContext into the page.
                  }
             }
         }
 
         await TeacherService.AddTeacherAsync(teacher, userId);
+
+        // Clean up the student entity if it was created during registration
+        if (userId != null)
+        {
+             await CleanupPendingStudent(userId);
+        }
+
         NavigationManager.NavigateTo("/teachers");
+    }
+
+    [inject]
+    SchoolManagementSystem.Web.Data.SchoolDbContext DbContext { get; set; }
+
+    private async Task CleanupPendingStudent(string userId)
+    {
+        var student = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(DbContext.Students, s => s.UserId == userId);
+        if (student != null)
+        {
+            DbContext.Students.Remove(student);
+            await DbContext.SaveChangesAsync();
+        }
     }
 }

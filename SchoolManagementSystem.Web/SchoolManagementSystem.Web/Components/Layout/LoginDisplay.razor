@@ -1,13 +1,23 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using SchoolManagementSystem.Web.Services
+@using Microsoft.AspNetCore.Identity
+@using SchoolManagementSystem.Web.Models.Auth
 @inject IAuthService AuthService
 @inject NavigationManager NavigationManager
+@inject UserManager<User> UserManager
 
 <AuthorizeView>
     <Authorized>
         <div class="dropdown">
             <button class="btn btn-link link-dark text-decoration-none d-flex align-items-center p-0 border-0 bg-transparent" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="avatar-circle me-2">@GetInitials(context.User.Identity?.Name)</div>
+                @if (!string.IsNullOrEmpty(ProfilePictureBase64))
+                {
+                    <img src="@ProfilePictureBase64" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);" />
+                }
+                else
+                {
+                    <div class="avatar-circle me-2">@GetInitials(context.User.Identity?.Name)</div>
+                }
                 <div class="d-none d-md-flex flex-column text-start lh-1">
                     <span class="fw-semibold text-dark" style="font-size: 0.9rem;">@context.User.Identity?.Name</span>
                     <span class="text-xs text-muted" style="font-size: 0.75rem;">@GetRole(context.User)</span>
@@ -78,6 +88,27 @@
 </style>
 
 @code {
+    private string? ProfilePictureBase64;
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthState != null)
+        {
+            var authState = await AuthState;
+            var user = authState.User;
+            if (user.Identity != null && user.Identity.IsAuthenticated)
+            {
+                var dbUser = await UserManager.GetUserAsync(user);
+                if (dbUser != null && dbUser.ProfilePicture != null)
+                {
+                    var mime = dbUser.ProfilePictureContentType ?? "image/jpeg";
+                    ProfilePictureBase64 = $"data:{mime};base64,{Convert.ToBase64String(dbUser.ProfilePicture)}";
+                }
+            }
+        }
+    }
+
     private string GetInitials(string? name)
     {
         if (string.IsNullOrWhiteSpace(name)) return "?";

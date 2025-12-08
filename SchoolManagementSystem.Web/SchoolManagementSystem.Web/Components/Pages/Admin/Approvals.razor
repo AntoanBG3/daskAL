@@ -1,0 +1,220 @@
+@page "/admin/approvals"
+@using SchoolManagementSystem.Web.Services
+@using SchoolManagementSystem.Web.Models.ViewModels
+@using SchoolManagementSystem.Web.Models.Auth
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@inject IAuthService AuthService
+@inject UserManager<User> UserManager
+@inject SchoolManagementSystem.Web.Data.SchoolDbContext DbContext
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+
+<PageTitle>Admin Approvals - daskAL</PageTitle>
+
+<div class="container mt-4">
+    <h2 class="mb-4">Approvals Dashboard</h2>
+
+    <div class="row">
+        <div class="col-md-12 mb-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-person-plus"></i> Pending Account Registrations</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.PendingUsers.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>DOB</th>
+                                        <th>Registered</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var user in Model.PendingUsers)
+                                    {
+                                        <tr>
+                                            <td>@user.FullName</td>
+                                            <td>@user.Email</td>
+                                            <td>@(user.DateOfBirth?.ToShortDateString() ?? "N/A")</td>
+                                            <td>@user.RegistrationDate.ToLocalTime().ToString("g")</td>
+                                            <td>
+                                                <button class="btn btn-success btn-sm me-1" @onclick="() => ApproveUser(user.UserId)">
+                                                    <i class="bi bi-check-lg"></i> Approve
+                                                </button>
+                                                <button class="btn btn-danger btn-sm" @onclick="() => RejectUser(user.UserId)">
+                                                    <i class="bi bi-x-lg"></i> Reject
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center my-3">No pending registrations.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-image"></i> Pending Profile Pictures</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.PendingPictures.Any())
+                    {
+                        <div class="row">
+                            @foreach (var pic in Model.PendingPictures)
+                            {
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">@pic.FullName</h6>
+                                            <p class="card-text small text-muted">@pic.Email</p>
+
+                                            <div class="d-flex justify-content-center align-items-center mb-3">
+                                                <div class="me-3">
+                                                    <small class="d-block mb-1">Current</small>
+                                                    @if (!string.IsNullOrEmpty(pic.CurrentPictureBase64))
+                                                    {
+                                                        <img src="@pic.CurrentPictureBase64" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;" alt="Current" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 80px; height: 80px;">
+                                                            <i class="bi bi-person display-6"></i>
+                                                        </div>
+                                                    }
+                                                </div>
+                                                <div>
+                                                    <i class="bi bi-arrow-right fs-4 text-muted"></i>
+                                                </div>
+                                                <div class="ms-3">
+                                                    <small class="d-block mb-1">New</small>
+                                                    <img src="@pic.PendingPictureBase64" class="rounded-circle border border-3 border-info" style="width: 80px; height: 80px; object-fit: cover;" alt="Pending" />
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <button class="btn btn-success btn-sm" @onclick="() => ApprovePicture(pic.UserId)">
+                                                    Approve
+                                                </button>
+                                                <button class="btn btn-danger btn-sm" @onclick="() => RejectPicture(pic.UserId)">
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center my-3">No pending profile pictures.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private AdminApprovalsViewModel Model { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        Model = new AdminApprovalsViewModel();
+
+        // Fetch Pending Users (IsActive = false)
+        // Note: In real app, consider pagination
+        var pendingUsers = await UserManager.Users
+            .Where(u => !u.IsActive)
+            .OrderBy(u => u.CreatedAt)
+            .ToListAsync();
+
+        foreach (var u in pendingUsers)
+        {
+            // Get Student details for DOB
+            var student = await DbContext.Students.FirstOrDefaultAsync(s => s.UserId == u.Id);
+            Model.PendingUsers.Add(new PendingUserViewModel
+            {
+                UserId = u.Id,
+                FullName = $"{u.FirstName} {u.LastName}",
+                Email = u.Email,
+                RegistrationDate = u.CreatedAt,
+                DateOfBirth = student?.DateOfBirth,
+                Role = "Student" // Assumed for now as only students self-register
+            });
+        }
+
+        // Fetch Pending Pictures
+        var pendingPics = await UserManager.Users
+            .Where(u => u.PendingProfilePicture != null)
+            .ToListAsync();
+
+        foreach (var u in pendingPics)
+        {
+            string currentBase64 = "";
+            if (u.ProfilePicture != null)
+            {
+                var mime = u.ProfilePictureContentType ?? "image/jpeg";
+                currentBase64 = $"data:{mime};base64,{Convert.ToBase64String(u.ProfilePicture)}";
+            }
+
+            string pendingBase64 = "";
+            if (u.PendingProfilePicture != null)
+            {
+                var mime = u.PendingProfilePictureContentType ?? "image/jpeg";
+                pendingBase64 = $"data:{mime};base64,{Convert.ToBase64String(u.PendingProfilePicture)}";
+            }
+
+            Model.PendingPictures.Add(new PendingPictureViewModel
+            {
+                UserId = u.Id,
+                FullName = $"{u.FirstName} {u.LastName}",
+                Email = u.Email,
+                CurrentPictureBase64 = currentBase64,
+                PendingPictureBase64 = pendingBase64
+            });
+        }
+    }
+
+    private async Task ApproveUser(string userId)
+    {
+        await AuthService.ApproveUserAsync(userId);
+        await LoadData();
+    }
+
+    private async Task RejectUser(string userId)
+    {
+        await AuthService.RejectUserAsync(userId);
+        await LoadData();
+    }
+
+    private async Task ApprovePicture(string userId)
+    {
+        await AuthService.ApproveProfilePictureAsync(userId);
+        await LoadData();
+    }
+
+    private async Task RejectPicture(string userId)
+    {
+        await AuthService.RejectProfilePictureAsync(userId);
+        await LoadData();
+    }
+}
