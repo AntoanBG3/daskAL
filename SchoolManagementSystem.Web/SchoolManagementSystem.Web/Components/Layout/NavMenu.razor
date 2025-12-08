@@ -1,17 +1,17 @@
-﻿<div class="nav-scrollable">
-    <ul class="nav flex-column">
+<div class="nav-scrollable">
+    <ul class="nav flex-column px-2">
         <AuthorizeView>
             <Authorized>
                 <li class="nav-item">
                     <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                        <i class="bi bi-speedometer2"></i> 
+                        <i class="bi bi-grid-1x2-fill"></i>
                         <span>Dashboard</span>
                     </NavLink>
                 </li>
 
                 <AuthorizeView Roles="Admin" Context="adminContext">
                     <li class="nav-item mt-3">
-                        <div class="sidebar-heading px-3 mb-2">Administration</div>
+                        <div class="sidebar-heading">Administration</div>
                     </li>
                     <li class="nav-item">
                         <NavLink class="nav-link" href="classes">
@@ -47,7 +47,7 @@
 
                 <AuthorizeView Roles="Teacher" Context="teacherContext">
                     <li class="nav-item mt-3">
-                        <div class="sidebar-heading px-3 mb-2">Academics</div>
+                        <div class="sidebar-heading">Academics</div>
                     </li>
                     <li class="nav-item">
                         <NavLink class="nav-link" href="grades">
@@ -59,7 +59,7 @@
 
                 <AuthorizeView Roles="Student" Context="studentContext">
                     <li class="nav-item mt-3">
-                        <div class="sidebar-heading px-3 mb-2">My School</div>
+                        <div class="sidebar-heading">My School</div>
                     </li>
                     <li class="nav-item">
                         <NavLink class="nav-link" href="my-profile">
@@ -82,9 +82,12 @@
                 </AuthorizeView>
 
                 <AuthorizeView Roles="Teacher,Student,Admin" Context="allContext">
+                    <li class="nav-item mt-4">
+                        <div class="sidebar-heading">Communication</div>
+                    </li>
                     <li class="nav-item">
                         <NavLink class="nav-link" href="messages">
-                            <i class="bi bi-envelope"></i> 
+                            <i class="bi bi-chat-dots"></i>
                             <span>Messages</span>
                         </NavLink>
                     </li>
