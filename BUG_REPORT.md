@@ -20,12 +20,27 @@ The `EditStudent` component has a flawed implementation for selecting a student'
     If the user does not select a class (or if the pre-selection failed), `selectedClassId` is empty. `int.TryParse` returns `false`, causing the method to exit immediately without calling the service or navigating. The user clicks "Save", and nothing happens, with no error message displayed.
 
 **Recommendation:**
--   Update `StudentViewModel` (or create a specific `EditStudentViewModel`) to include `ClassId` (int) instead of just the class name.
+-   Update `StudentViewModel` to include `ClassId` (int).
 -   Bind the `InputSelect` directly to this `ClassId`.
 -   Add `[Required]` validation to the `ClassId`.
 -   Ensure the form submission handles validation errors and provides feedback.
 
-## 2. Silent Failure in Student Creation Service
+## 2. Silent Failure in Grade Creation
+**Severity:** Critical
+**Location:** `SchoolManagementSystem.Web/Components/Pages/Grades.razor`
+
+**Description:**
+The `Add Grade` form fails silently because of a mismatch between the ViewModel validation and the form binding.
+-   `GradeViewModel` marks `SubjectName` as `[Required]`.
+-   The form in `Grades.razor` binds to `SubjectId` but **does not set** `SubjectName`.
+-   When the user clicks "Add", the `DataAnnotationsValidator` detects that `SubjectName` is null/empty and blocks the submission.
+-   Since there is no `<ValidationMessage>` for `SubjectName` and no `<ValidationSummary>`, the user sees no error. The `OnValidSubmit` handler (`HandleAddGrade`) is never called.
+
+**Recommendation:**
+-   Remove `[Required]` from `SubjectName` in `GradeViewModel` (it is for display only), or set it to a default value.
+-   Validate that `SubjectId` is selected instead.
+
+## 3. Silent Failure in Student Creation Service
 **Severity:** Major
 **Location:** `SchoolManagementSystem.Web/Services/StudentService.cs`
 
@@ -40,35 +55,36 @@ public async Task AddStudentAsync(StudentViewModel model)
     }
 }
 ```
-If `model.Class` (which is a string) contains a value that is not a valid integer (e.g., if the ViewModel was populated with a class Name instead of ID, or if it is empty), the method silently returns. The student is not created, and no exception is thrown to alert the caller.
+If `model.Class` (which is a string) cannot be parsed as an integer (e.g., if it contains a Name), the method silently returns. The student is not added, and no error is raised.
 
 **Recommendation:**
--   Throw an `ArgumentException` or a custom exception if parsing fails.
--   Ideally, refactor the method to accept `int classId` directly from the controller/component, or ensure the ViewModel guarantees a valid ID.
+-   Throw an exception if parsing fails.
+-   Refactor to pass `int ClassId` explicitly.
 
-## 3. Broken "Send Message" Feature for Teachers
+## 4. Broken Teacher Account & Messaging System
 **Severity:** Major
-**Location:** `SchoolManagementSystem.Web/Components/Pages/TeachersList.razor` and `Messages.razor`
+**Location:** `AuthService.cs`, `TeacherService.cs`, `Messages.razor`
 
 **Description:**
-The "Send Message" button in the Teacher list redirects to `messages?composeTo={TeacherId}`. However, the `Messages` component does not correctly handle this parameter:
-1.  It accepts the parameter but only switches the tab to "Compose".
-2.  It does not pre-select the recipient.
-3.  **Fundamental Mismatch:** The messaging system identifies recipients by **Email**, but the link provides an **Integer ID**. There is currently no logic in the frontend to resolve a Teacher ID to an Email Address.
-4.  **Hardcoded Recipients:** The recipient dropdown in `Messages.razor` is populated with hardcoded dummy data, making it impossible to select actual teachers dynamically.
+1.  **Cannot Create Teacher Login:** `AuthService.RegisterAsync` hardcodes the role to "Student" for all new users. `TeacherService.AddTeacherAsync` adds a record to the `Teachers` table but does not create a User account or link the `UserId`. Thus, created teachers cannot log in.
+2.  **Broken "Send Message":** The "Send Message" button in the Teacher list links to `messages?composeTo={TeacherId}`.
+    -   `Messages.razor` does not map `TeacherId` to an Email/User.
+    -   The recipient dropdown contains hardcoded dummy data (`admin@school.com`, etc.) and does not list actual teachers from the database.
+    -   It is effectively impossible to send a message to a specific real teacher.
 
 **Recommendation:**
--   Update `SchoolService` or `TeacherService` to allow looking up a Teacher's email (or User ID) by their Teacher ID.
--   Update `Messages.razor` to resolve the `ComposeTo` ID to an email and pre-select it.
--   Implement a real user/recipient search or fetch logic instead of hardcoded values.
+-   Implement proper User creation with Role selection (Admin only).
+-   Link `Teacher` entities to `User` entities (via `UserId`).
+-   Update `Messages.razor` to fetch real users/teachers for the recipient list.
 
-## 4. Potential Data Integrity Issue in Teacher Deletion
+## 5. Incomplete Data Import
 **Severity:** Moderate
-**Location:** `SchoolManagementSystem.Web/Services/TeacherService.cs`
+**Location:** `SchoolManagementSystem.Web/Services/DataImportService.cs`
 
 **Description:**
-`DeleteTeacherAsync` removes a teacher entity without explicitly handling related `Subject` entities. While the database likely sets the `TeacherId` foreign key to NULL (orphaning the subjects), this behavior is implicit.
+The import service creates Students and Teachers but **skips creating Subjects**.
+-   Imported grades are created with `SubjectName` but `SubjectId` is null.
+-   This leaves the system in a state where grades exist but the corresponding Subjects do not appear in management lists or dropdowns.
 
 **Recommendation:**
--   Verify the desired business logic: Should subjects be unassigned, or should deletion be blocked if subjects are assigned?
--   Implement a check or warning in the UI before deletion if the teacher has active subjects.
+-   Implement the logic to import Subjects from the legacy data and link them to Teachers.
