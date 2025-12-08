@@ -55,7 +55,7 @@
     --grid-gap: 1.5rem;
 }
 
-[data-sidebar-theme="default"] {
+[data-sidebar-theme="dark"] {
     --sidebar-bg: #0f172a;
     --sidebar-color: #94a3b8;
     --sidebar-active-bg: #1e293b;
@@ -69,14 +69,6 @@
     --sidebar-active-bg: #f1f5f9;
     --sidebar-active-color: #4f46e5;
     --sidebar-heading-color: #94a3b8;
-}
-
-[data-sidebar-theme="navy"] {
-    --sidebar-bg: #1e1b4b;
-    --sidebar-color: #a5b4fc;
-    --sidebar-active-bg: #312e81;
-    --sidebar-active-color: #ffffff;
-    --sidebar-heading-color: #6366f1;
 }
 
 html,

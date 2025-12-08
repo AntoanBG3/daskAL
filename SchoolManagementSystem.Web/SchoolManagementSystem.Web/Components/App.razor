@@ -21,7 +21,7 @@
     <script>
         // Apply saved theme immediately to prevent flash
         (function() {
-            var savedTheme = localStorage.getItem('sidebarTheme') || 'default';
+            var savedTheme = localStorage.getItem('sidebarTheme') || 'light';
             document.documentElement.setAttribute('data-sidebar-theme', savedTheme);
         })();
 
@@ -36,7 +36,6 @@
                 input.type = "password";
                 icon.classList.remove("bi-eye-slash");
                 icon.classList.add("bi-eye");
-            }
             }
         }
 
