@@ -1,6 +1,15 @@
 @page "/"
 @using Microsoft.AspNetCore.Authorization
+@using SchoolManagementSystem.Web.Services
+@using SchoolManagementSystem.Web.Models
+@using SchoolManagementSystem.Web.Data
+@using Microsoft.EntityFrameworkCore
 @attribute [Authorize]
+@inject StudentService StudentService
+@inject TeacherService TeacherService
+@inject ClassService ClassService
+@inject AbsenceService AbsenceService
+@inject SchoolDbContext DbContext
 
 <PageTitle>Dashboard - daskAL</PageTitle>
 
@@ -31,7 +40,7 @@
                         <span class="badge bg-light text-dark rounded-pill">Total</span>
                     </div>
                     <div>
-                        <h2 class="stat-value">1,248</h2>
+                        <h2 class="stat-value">@TotalStudents</h2>
                         <p class="stat-label">Active Students</p>
                     </div>
                      <div class="mt-auto pt-3 border-top border-light">
@@ -43,7 +52,7 @@
                      <div class="card-icon" style="background: #FEF3C7; color: #D97706;">
                         <i class="bi bi-person-badge-fill"></i>
                     </div>
-                    <h2 class="stat-value">84</h2>
+                    <h2 class="stat-value">@TotalTeachers</h2>
                     <p class="stat-label">Teachers</p>
                      <div class="mt-auto">
                         <a href="teachers" class="text-decoration-none small fw-bold">View List &rarr;</a>
@@ -54,7 +63,7 @@
                      <div class="card-icon" style="background: #DBEAFE; color: #2563EB;">
                         <i class="bi bi-building"></i>
                     </div>
-                    <h2 class="stat-value">42</h2>
+                    <h2 class="stat-value">@TotalClasses</h2>
                     <p class="stat-label">Classes</p>
                      <div class="mt-auto">
                         <a href="classes" class="text-decoration-none small fw-bold">Manage &rarr;</a>
@@ -64,22 +73,29 @@
                  <!-- Chart Placeholder - Span 2 columns, 2 rows -->
                 <div class="card-premium grid-span-2 grid-row-2">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title">Attendance Overview</h5>
-                        <select class="form-select form-select-sm w-auto border-0 bg-light">
-                            <option>This Week</option>
-                            <option>Last Month</option>
-                        </select>
+                        <h5 class="card-title">Attendance Overview (Last 7 Days)</h5>
                     </div>
                     <div class="flex-grow-1 d-flex align-items-end justify-content-center bg-light rounded-3 p-3 position-relative overflow-hidden">
-                        <!-- CSS Only Bar Chart Representation -->
+                        <!-- Dynamic CSS Bar Chart -->
                         <div class="d-flex justify-content-around w-100 h-100 align-items-end" style="gap: 8px;">
-                            <div style="width: 12%; height: 60%; background: #E2E8F0; border-radius: 8px 8px 0 0;"></div>
-                            <div style="width: 12%; height: 80%; background: #E2E8F0; border-radius: 8px 8px 0 0;"></div>
-                            <div style="width: 12%; height: 45%; background: #E2E8F0; border-radius: 8px 8px 0 0;"></div>
-                            <div style="width: 12%; height: 90%; background: var(--primary); border-radius: 8px 8px 0 0; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);"></div>
-                            <div style="width: 12%; height: 75%; background: #E2E8F0; border-radius: 8px 8px 0 0;"></div>
-                            <div style="width: 12%; height: 50%; background: #E2E8F0; border-radius: 8px 8px 0 0;"></div>
-                             <div style="width: 12%; height: 65%; background: #E2E8F0; border-radius: 8px 8px 0 0;"></div>
+                            @foreach (var day in RecentAbsences)
+                            {
+                                var height = MaxAbsences > 0 ? (day.Count * 100 / MaxAbsences) : 0;
+                                // Minimum height 5% for visibility, max 95%
+                                var displayHeight = Math.Max(5, Math.Min(95, height));
+
+                                <div class="d-flex flex-column align-items-center" style="width: 12%; height: 100%; justify-content: flex-end;">
+                                    <div style="width: 100%; height: @displayHeight%; background: var(--primary); border-radius: 8px 8px 0 0; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);"
+                                         title="@day.Date.ToString("ddd"): @day.Count absences"></div>
+                                    <small class="mt-1 text-muted" style="font-size: 0.7rem;">@day.Date.ToString("ddd")</small>
+                                </div>
+                            }
+                            @if (RecentAbsences.Count == 0)
+                            {
+                                <div class="d-flex align-items-center justify-content-center w-100 h-100 text-muted">
+                                    No absence data for the last week.
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -141,14 +157,14 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
                              <h5 class="card-title mb-1">Academic Performance</h5>
-                             <p class="text-muted small">Your latest grade average</p>
+                             <p class="text-muted small">Your average grade</p>
                         </div>
                         <div class="text-end">
-                            <span class="display-6 fw-bold text-primary">A-</span>
+                            <span class="display-6 fw-bold text-primary">@StudentAverageGrade.ToString("F1")</span>
                         </div>
                     </div>
                     <div class="progress" style="height: 8px; border-radius: 10px;">
-                        <div class="progress-bar bg-primary" role="progressbar" style="width: 88%" aria-valuenow="88" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: @(StudentAverageGrade * 10)%" aria-valuenow="@(StudentAverageGrade * 10)" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                     <div class="mt-4">
                          <a href="my-grades" class="btn btn-primary btn-sm">View Full Report</a>
@@ -190,3 +206,111 @@
         <i class="bi bi-plus-lg"></i>
     </button>
 </div>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private int TotalStudents;
+    private int TotalTeachers;
+    private int TotalClasses;
+    private List<DailyAbsenceStat> RecentAbsences = new();
+    private int MaxAbsences = 1;
+
+    // Student specific
+    private double StudentAverageGrade = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authenticationStateTask;
+        var user = authState.User;
+
+        if (user.IsInRole("Admin"))
+        {
+            await LoadAdminStats();
+        }
+        else if (user.IsInRole("Student"))
+        {
+            await LoadStudentStats(user.Identity?.Name);
+        }
+    }
+
+    private async Task LoadAdminStats()
+    {
+        TotalStudents = await DbContext.Students.CountAsync();
+        TotalTeachers = await DbContext.Teachers.CountAsync();
+        TotalClasses = await DbContext.SchoolClasses.CountAsync();
+
+        // Calculate recent absences for the chart (last 7 days)
+        var sevenDaysAgo = DateTime.Today.AddDays(-6);
+        var absences = await DbContext.Absences
+            .Where(a => a.Date >= sevenDaysAgo)
+            .ToListAsync();
+
+        // Group by Date (only date part)
+        var grouped = absences
+            .GroupBy(a => a.Date.Date)
+            .Select(g => new DailyAbsenceStat { Date = g.Key, Count = g.Count() })
+            .ToList();
+
+        // Fill in missing days
+        for (int i = 0; i < 7; i++)
+        {
+            var date = sevenDaysAgo.AddDays(i);
+            if (!grouped.Any(d => d.Date == date))
+            {
+                grouped.Add(new DailyAbsenceStat { Date = date, Count = 0 });
+            }
+        }
+
+        RecentAbsences = grouped.OrderBy(d => d.Date).ToList();
+        if (RecentAbsences.Any())
+        {
+            MaxAbsences = RecentAbsences.Max(d => d.Count);
+            if (MaxAbsences == 0) MaxAbsences = 1; // Avoid divide by zero
+        }
+    }
+
+    private async Task LoadStudentStats(string? username)
+    {
+        if (string.IsNullOrEmpty(username)) return;
+
+        var student = await DbContext.Students
+            .Include(s => s.Grades)
+            .FirstOrDefaultAsync(s => s.UserId == username || s.FirstName + " " + s.LastName == username); // Fallback match if username scheme differs
+
+        // Assuming Identity Name maps to Student.UserId or similar.
+        // If the implementation uses email as username, we might need a different lookup.
+        // Let's try to match by UserId first (which is standard).
+        // Since I don't have UserManager injected, I'll rely on what's in DbContext.
+
+        if (student == null)
+        {
+             // Fallback: try to find by checking if the User Name is in the student table?
+             // Actually, usually UserId in DB stores the GUID from AspNetUsers.
+             // But context.User.Identity.Name is usually the Email/Username.
+             // The `Student` model has `UserId`. It's safer to query generically if we don't know the mapping.
+             // But for now let's assume `UserId` in Student matches the logged in user ID, which we can't get easily from Identity.Name without UserManager.
+             // Wait, `AuthenticationState` provides Claims. One of them is likely `sub` (Subject ID).
+
+             var userIdClaim = (await authenticationStateTask).User.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+             if (userIdClaim != null)
+             {
+                 student = await DbContext.Students
+                     .Include(s => s.Grades)
+                     .FirstOrDefaultAsync(s => s.UserId == userIdClaim.Value);
+             }
+        }
+
+        if (student != null && student.Grades.Any())
+        {
+            StudentAverageGrade = student.Grades.Average(g => g.Value);
+        }
+    }
+
+    public class DailyAbsenceStat
+    {
+        public DateTime Date { get; set; }
+        public int Count { get; set; }
+    }
+}

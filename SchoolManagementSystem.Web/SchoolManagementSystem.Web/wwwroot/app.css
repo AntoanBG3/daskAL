@@ -98,6 +98,7 @@ html, body {
     overflow-y: auto;
     padding: 0 2rem 2rem 2rem;
     scroll-behavior: smooth;
+    outline: none; /* Fix: Prevent highlight ring on navigation */
 }
 
 /* Typography Overrides */
@@ -105,12 +106,17 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text-primary);
     font-weight: 600;
     letter-spacing: -0.02em;
+    outline: none; /* Fix: Prevent highlight ring on navigation */
 }
 
 a {
     color: var(--primary);
     text-decoration: none;
     transition: color 0.2s ease;
+}
+
+a:focus {
+    outline: none; /* Fix: remove focus ring from links if that's the issue */
 }
 
 .text-muted {
