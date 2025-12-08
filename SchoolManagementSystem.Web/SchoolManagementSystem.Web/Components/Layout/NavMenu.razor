@@ -1,81 +1,95 @@
-﻿<ul class="navbar-nav">
-    <AuthorizeView>
-        <Authorized>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
-                </NavLink>
-            </li>
+﻿<div class="nav-scrollable">
+    <ul class="nav flex-column">
+        <AuthorizeView>
+            <Authorized>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <i class="bi bi-speedometer2"></i> 
+                        <span>Dashboard</span>
+                    </NavLink>
+                </li>
 
-            <AuthorizeView Roles="Admin" Context="adminContext">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-gear-fill me-1"></i> Administration
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-dark">
-                        <li>
-                            <a class="dropdown-item" href="classes">
-                                <i class="bi bi-building me-2"></i> Manage Classes
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="students">
-                                <i class="bi bi-people me-2"></i> Manage Students
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="teachers">
-                                <i class="bi bi-person-badge me-2"></i> Manage Teachers
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="subjects">
-                                <i class="bi bi-book me-2"></i> Manage Subjects
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="grades">
-                                <i class="bi bi-graph-up me-2"></i> View Grades
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            </AuthorizeView>
+                <AuthorizeView Roles="Admin" Context="adminContext">
+                    <li class="nav-item mt-3">
+                        <div class="text-uppercase small fw-bold px-3 mb-2 text-muted" style="font-size: 0.7rem; letter-spacing: 0.05em;">Administration</div>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="classes">
+                            <i class="bi bi-building"></i> 
+                            <span>Classes</span>
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="students">
+                            <i class="bi bi-people"></i> 
+                            <span>Students</span>
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="teachers">
+                            <i class="bi bi-person-badge"></i> 
+                            <span>Teachers</span>
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="subjects">
+                            <i class="bi bi-book"></i> 
+                            <span>Subjects</span>
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="grades">
+                            <i class="bi bi-graph-up"></i> 
+                            <span>All Grades</span>
+                        </NavLink>
+                    </li>
+                </AuthorizeView>
 
-            <AuthorizeView Roles="Teacher" Context="teacherContext">
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="grades">
-                        <i class="bi bi-clipboard-data me-1"></i> Grades
-                    </NavLink>
-                </li>
-            </AuthorizeView>
+                <AuthorizeView Roles="Teacher" Context="teacherContext">
+                    <li class="nav-item mt-3">
+                        <div class="text-uppercase small fw-bold px-3 mb-2 text-muted" style="font-size: 0.7rem; letter-spacing: 0.05em;">Academics</div>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="grades">
+                            <i class="bi bi-clipboard-data"></i> 
+                            <span>Manage Grades</span>
+                        </NavLink>
+                    </li>
+                </AuthorizeView>
 
-            <AuthorizeView Roles="Student" Context="studentContext">
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="my-profile">
-                        <i class="bi bi-person-circle me-1"></i> My Profile
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="my-grades">
-                        <i class="bi bi-journal-check me-1"></i> My Grades
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="teachers-list">
-                        <i class="bi bi-people me-1"></i> Teachers
-                    </NavLink>
-                </li>
-            </AuthorizeView>
+                <AuthorizeView Roles="Student" Context="studentContext">
+                    <li class="nav-item mt-3">
+                        <div class="text-uppercase small fw-bold px-3 mb-2 text-muted" style="font-size: 0.7rem; letter-spacing: 0.05em;">My School</div>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="my-profile">
+                            <i class="bi bi-person-circle"></i> 
+                            <span>My Profile</span>
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="my-grades">
+                            <i class="bi bi-journal-check"></i> 
+                            <span>My Grades</span>
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="teachers-list">
+                            <i class="bi bi-people"></i> 
+                            <span>My Teachers</span>
+                        </NavLink>
+                    </li>
+                </AuthorizeView>
 
-            <AuthorizeView Roles="Teacher,Student,Admin" Context="allContext">
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="messages">
-                        <i class="bi bi-envelope me-1"></i> Messages
-                    </NavLink>
-                </li>
-            </AuthorizeView>
-        </Authorized>
-    </AuthorizeView>
-</ul>
+                <AuthorizeView Roles="Teacher,Student,Admin" Context="allContext">
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="messages">
+                            <i class="bi bi-envelope"></i> 
+                            <span>Messages</span>
+                        </NavLink>
+                    </li>
+                </AuthorizeView>
+            </Authorized>
+        </AuthorizeView>
+    </ul>
+</div>

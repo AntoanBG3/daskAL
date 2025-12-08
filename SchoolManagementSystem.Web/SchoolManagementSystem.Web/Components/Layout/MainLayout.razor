@@ -1,35 +1,38 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page d-flex flex-column min-vh-100 bg-light">
-    
-    <header class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="">
-                <i class="bi bi-mortarboard-fill me-2"></i> daskAL
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+<div class="app-container">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="d-flex align-items-center p-3 border-bottom border-secondary" style="border-color: rgba(255,255,255,0.1) !important; height: 64px;">
+            <i class="bi bi-mortarboard-fill fs-4 text-primary me-2"></i>
+            <span class="fs-5 fw-bold tracking-tight text-white">daskAL</span>
+        </div>
+        
+        <NavMenu />
+        
+        <div class="mt-auto p-3 border-top border-secondary" style="border-color: rgba(255,255,255,0.1) !important;">
+             <div class="small text-muted text-center">&copy; @DateTime.Now.Year daskAL</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content-wrapper">
+        <header class="top-bar">
+             <button class="btn btn-icon d-lg-none" type="button" onclick="document.getElementById('sidebar').classList.toggle('show')">
+                <i class="bi bi-list fs-4"></i>
             </button>
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <NavMenu />
-                <div class="ms-3">
-                    <LoginDisplay />
-                </div>
+            
+            <div class="ms-auto">
+                <LoginDisplay />
             </div>
-        </div>
-    </header>
+        </header>
 
-    <main class="flex-grow-1 py-4">
-        <div class="container">
-            @Body
-        </div>
-    </main>
-
-    <footer class="bg-white border-top py-3 mt-auto">
-        <div class="container text-center text-muted small">
-            &copy; @DateTime.Now.Year daskAL School Management System. Built with Blazor & EF Core.
-        </div>
-    </footer>
+        <main class="content-scrollable">
+            <div class="container-fluid py-4" style="max-width: 1200px;">
+                @Body
+            </div>
+        </main>
+    </div>
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
