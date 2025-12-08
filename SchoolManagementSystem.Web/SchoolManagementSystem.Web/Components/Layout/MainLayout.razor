@@ -1,28 +1,127 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Authorization
+@using SchoolManagementSystem.Web.Services
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject MessageService MessageService
+@inject NavigationManager NavigationManager
 
 <div class="app-container">
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <i class="bi bi-mortarboard-fill fs-4 text-primary me-2"></i>
-            <span class="fs-5 fw-bold tracking-tight text-white">daskAL</span>
+            <div class="brand-logo">
+                <i class="bi bi-mortarboard-fill text-primary"></i>
+                <span>daskAL</span>
+            </div>
         </div>
         
         <NavMenu />
         
-        <div class="sidebar-footer">
-             <div class="small text-muted text-center">&copy; @DateTime.Now.Year daskAL</div>
+        <div class="p-3 border-top border-light">
+             <div class="d-flex align-items-center p-2 rounded hover-bg-light">
+                 <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                     <i class="bi bi-person"></i>
+                 </div>
+                 <div class="overflow-hidden">
+                     <div class="small fw-bold text-truncate text-dark">
+                         <AuthorizeView>
+                             @context.User.Identity?.Name
+                         </AuthorizeView>
+                     </div>
+                     <div class="small text-muted" style="font-size: 0.7rem;">
+                         <AuthorizeView Roles="Admin">Admin</AuthorizeView>
+                         <AuthorizeView Roles="Teacher">Teacher</AuthorizeView>
+                         <AuthorizeView Roles="Student">Student</AuthorizeView>
+                     </div>
+                 </div>
+             </div>
         </div>
     </div>
 
     <!-- Main Content -->
     <div class="main-content-wrapper">
-        <header class="top-bar glass sticky-top">
-             <button class="btn btn-icon d-lg-none" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation">
+        <header class="top-bar sticky-top">
+             <button class="btn btn-outline d-lg-none" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation">
                 <i class="bi bi-list fs-4"></i>
             </button>
             
-            <div class="ms-auto">
+            <div class="d-flex align-items-center ms-auto gap-3">
+                 <!-- Search Bar -->
+                 <div class="search-wrapper d-none d-md-block">
+                     <div class="input-group">
+                         <span class="input-group-text bg-transparent border-end-0 text-muted ps-3">
+                             <i class="bi bi-search"></i>
+                         </span>
+                         <!-- Functional Filter Box -->
+                         <select class="form-select border-0 bg-transparent text-muted small search-filter"
+                                 style="max-width: 100px; font-size: 0.85rem;"
+                                 @bind="SearchType">
+                             <option value="All">All</option>
+                             <option value="Students">Students</option>
+                             <option value="Teachers">Teachers</option>
+                             <option value="Classes">Classes</option>
+                         </select>
+
+                         <input type="text" class="form-control border-start-0 ps-2 search-input"
+                                placeholder="Search..." aria-label="Search"
+                                @bind="SearchQuery" @onkeyup="HandleSearch" />
+                     </div>
+                 </div>
+
+                <!-- Notification Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-outline border-0 text-muted position-relative" type="button"
+                            id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" @onclick="ToggleNotifications">
+                        <i class="bi bi-bell"></i>
+                        @if (UnreadCount > 0)
+                        {
+                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                                <span class="visually-hidden">New alerts</span>
+                            </span>
+                        }
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 p-0" aria-labelledby="notificationDropdown" style="width: 320px; border-radius: 12px; margin-top: 10px;">
+                        <li class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold">Notifications</h6>
+                            <a href="messages" class="small text-primary text-decoration-none">View All</a>
+                        </li>
+                        <div class="notification-list" style="max-height: 300px; overflow-y: auto;">
+                            @if (RecentMessages.Any())
+                            {
+                                @foreach (var msg in RecentMessages)
+                                {
+                                    <li>
+                                        <a class="dropdown-item p-3 border-bottom border-light d-flex align-items-start gap-3" href="messages">
+                                            <div class="bg-light rounded-circle p-2 text-primary d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                                <i class="bi bi-envelope-fill"></i>
+                                            </div>
+                                            <div class="flex-grow-1 overflow-hidden">
+                                                <div class="d-flex justify-content-between">
+                                                    <span class="fw-bold small text-truncate">@msg.Subject</span>
+                                                    <span class="text-muted" style="font-size: 0.7rem;">@GetTimeAgo(msg.SentAt)</span>
+                                                </div>
+                                                <p class="text-muted small mb-0 text-truncate">@msg.Content</p>
+                                            </div>
+                                            @if (!msg.IsRead)
+                                            {
+                                                <span class="d-inline-block bg-primary rounded-circle" style="width: 6px; height: 6px; margin-top: 6px;"></span>
+                                            }
+                                        </a>
+                                    </li>
+                                }
+                            }
+                            else
+                            {
+                                <li class="p-4 text-center text-muted small">
+                                    No new notifications
+                                </li>
+                            }
+                        </div>
+                    </ul>
+                </div>
+
+                <div class="vr h-50 mx-2 text-muted"></div>
                 <LoginDisplay />
             </div>
         </header>
@@ -42,8 +141,52 @@
     }
 </script>
 
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
-</div>
+@code {
+    private string SearchQuery = "";
+    private string SearchType = "All";
+    private int UnreadCount = 0;
+    private List<SchoolManagementSystem.Web.Models.Message> RecentMessages = new();
+    private bool _notificationsOpen = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadNotifications();
+    }
+
+    private async Task LoadNotifications()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var messages = await MessageService.GetMessagesForUserAsync(userId);
+            UnreadCount = messages.Count(m => !m.IsRead);
+            RecentMessages = messages.Take(5).ToList();
+        }
+    }
+
+    private void HandleSearch(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            NavigationManager.NavigateTo($"/search?q={Uri.EscapeDataString(SearchQuery)}&type={SearchType}");
+            SearchQuery = ""; // Reset
+        }
+    }
+
+    private void ToggleNotifications()
+    {
+        _notificationsOpen = !_notificationsOpen;
+        StateHasChanged();
+    }
+
+    private string GetTimeAgo(DateTime date)
+    {
+        var span = DateTime.UtcNow - date;
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}m";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours}h";
+        return $"{(int)span.TotalDays}d";
+    }
+}
