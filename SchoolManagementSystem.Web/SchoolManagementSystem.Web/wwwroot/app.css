@@ -154,7 +154,7 @@ a:hover {
     padding: 1rem 0;
 }
 
-.nav-item .nav-link {
+.sidebar .nav-item .nav-link {
     display: flex;
     align-items: center;
     padding: 0.75rem 1.5rem;
@@ -164,25 +164,25 @@ a:hover {
     font-size: 0.95rem;
 }
 
-.nav-item .nav-link:hover {
+.sidebar .nav-item .nav-link:hover {
     color: #fff;
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-.nav-item .nav-link.active {
+.sidebar .nav-item .nav-link.active {
     color: var(--sidebar-active-color);
     background-color: var(--sidebar-active-bg);
     border-right: 3px solid var(--primary);
 }
 
-.nav-item .nav-link i {
+.sidebar .nav-item .nav-link i {
     font-size: 1.1rem;
     margin-right: 0.75rem;
     opacity: 0.75;
 }
 
-.nav-item .nav-link:hover i,
-.nav-item .nav-link.active i {
+.sidebar .nav-item .nav-link:hover i,
+.sidebar .nav-item .nav-link.active i {
     opacity: 1;
 }
 
