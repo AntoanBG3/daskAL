@@ -1,13 +1,14 @@
 @page "/teachers/add"
-@inject SchoolManagementSystem.Web.Services.TeacherService TeacherService
-@inject SchoolManagementSystem.Web.Services.IAuthService AuthService
-@inject NavigationManager NavigationManager
 @using SchoolManagementSystem.Web.Models.ViewModels
 @using SchoolManagementSystem.Web.DTOs
 @using Microsoft.AspNetCore.Identity
 @using SchoolManagementSystem.Web.Models.Auth
-@using Microsoft.AspNetCore.Components
+@using Microsoft.EntityFrameworkCore
+@inject SchoolManagementSystem.Web.Services.TeacherService TeacherService
+@inject SchoolManagementSystem.Web.Services.IAuthService AuthService
+@inject NavigationManager NavigationManager
 @inject UserManager<User> UserManager
+@inject SchoolManagementSystem.Web.Data.SchoolDbContext DbContext
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 
 <h3>Add New Teacher</h3>
@@ -101,12 +102,9 @@
         NavigationManager.NavigateTo("/teachers");
     }
 
-    [Inject]
-    SchoolManagementSystem.Web.Data.SchoolDbContext DbContext { get; set; }
-
     private async Task CleanupPendingStudent(string userId)
     {
-        var student = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(DbContext.Students, s => s.UserId == userId);
+        var student = await DbContext.Students.FirstOrDefaultAsync(s => s.UserId == userId);
         if (student != null)
         {
             DbContext.Students.Remove(student);
