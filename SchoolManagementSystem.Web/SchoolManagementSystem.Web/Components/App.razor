@@ -18,6 +18,27 @@
     <Routes @rendermode="PageRenderMode" />
     <script src="lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="_framework/blazor.web.js"></script>
+    <script>
+        // Apply saved theme immediately to prevent flash
+        (function() {
+            var savedTheme = localStorage.getItem('sidebarTheme') || 'default';
+            document.documentElement.setAttribute('data-sidebar-theme', savedTheme);
+        })();
+
+        function togglePassword(inputId, btn) {
+            var input = document.getElementById(inputId);
+            var icon = btn.querySelector('i');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("bi-eye");
+                icon.classList.add("bi-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("bi-eye-slash");
+                icon.classList.add("bi-eye");
+            }
+        }
+    </script>
 </body>
 
 </html>

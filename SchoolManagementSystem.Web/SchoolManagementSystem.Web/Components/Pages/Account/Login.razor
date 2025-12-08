@@ -44,6 +44,9 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
                                 <InputText type="password" id="password" class="form-control" @bind-Value="TargetModel.Password" placeholder="••••••••" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
                             </div>
                         </div>
 
