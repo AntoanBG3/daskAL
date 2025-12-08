@@ -126,10 +126,10 @@ namespace SchoolManagementSystem.Web.Services
                 if (student == null || student.SchoolClassId == null) return new List<SubjectViewModel>();
                 
                 var subjects = await _context.ClassSubjects
-                    .Where(cs => cs.SchoolClassId == student.SchoolClassId)
+                    .Where(cs => cs.SchoolClassId == student.SchoolClassId && cs.Subject != null)
                     .Include(cs => cs.Subject)
-                    .ThenInclude(s => s.Teacher)
-                    .Select(cs => cs.Subject)
+                    .ThenInclude(s => s!.Teacher)
+                    .Select(cs => cs.Subject!)
                     .ToListAsync();
                     
                 return subjects.Select(s => new SubjectViewModel

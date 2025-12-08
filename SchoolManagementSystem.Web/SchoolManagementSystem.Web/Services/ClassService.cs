@@ -29,7 +29,7 @@ namespace SchoolManagementSystem.Web.Services
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    AssignedSubjects = c.ClassSubjects.Select(cs => cs.Subject.Name).ToList()
+                    AssignedSubjects = c.ClassSubjects.Select(cs => cs.Subject?.Name ?? "Unknown").ToList()
                 }).ToList();
             }
             catch (Exception ex)
@@ -54,7 +54,7 @@ namespace SchoolManagementSystem.Web.Services
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    AssignedSubjects = c.ClassSubjects.Select(cs => cs.Subject.Name).ToList()
+                    AssignedSubjects = c.ClassSubjects.Select(cs => cs.Subject?.Name ?? "Unknown").ToList()
                 };
             }
             catch (Exception ex)
