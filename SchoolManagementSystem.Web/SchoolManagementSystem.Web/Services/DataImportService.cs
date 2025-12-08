@@ -40,7 +40,31 @@ namespace SchoolManagementSystem.Web.Services
                             await _context.SaveChangesAsync();
                         }
 
-                        // 2. Import Subjects and Link Teachers (Skipped in original logic, kept commented out or similar)
+                        // 2. Import Subjects and Link Teachers
+                        if (!_context.Subjects.Any() && schoolData.Subjects != null)
+                        {
+                             var teachers = await _context.Teachers.ToListAsync();
+
+                             foreach(var s in schoolData.Subjects)
+                             {
+                                 // Try to find teacher by name if ID is not reliable or matching legacy structure
+                                 // LegacySubject has Teacher object or TeacherId?
+                                 // Let's assume LegacySubject has Teacher Name or we match by TeachingSubjects from Teacher list
+
+                                 // Logic: Find a teacher who teaches this subject
+                                 var teacher = teachers.FirstOrDefault(t =>
+                                     schoolData.Teachers.Any(lt => lt.FirstName == t.FirstName && lt.LastName == t.LastName && lt.TeachingSubjects.Contains(s.Name))
+                                 );
+
+                                 _context.Subjects.Add(new Subject
+                                 {
+                                     Name = s.Name,
+                                     Description = s.Description,
+                                     TeacherId = teacher?.Id
+                                 });
+                             }
+                             await _context.SaveChangesAsync();
+                        }
                         
                         // 3. Import Classes (New Logic)
                         if (!_context.SchoolClasses.Any() && schoolData.Students != null)
@@ -76,13 +100,19 @@ namespace SchoolManagementSystem.Web.Services
                                 // Import Grades
                                 if (s.SubjectGrades != null)
                                 {
+                                    // Fetch subjects to link IDs
+                                    var subjects = await _context.Subjects.ToListAsync();
+
                                     foreach (var subjectName in s.SubjectGrades.Keys)
                                     {
+                                        var subjectEntity = subjects.FirstOrDefault(sub => sub.Name == subjectName);
+
                                         foreach (var val in s.SubjectGrades[subjectName])
                                         {
                                             newStudent.Grades.Add(new Grade 
                                             { 
                                                 SubjectName = subjectName, 
+                                                SubjectId = subjectEntity?.Id,
                                                 Value = val 
                                             });
                                         }
