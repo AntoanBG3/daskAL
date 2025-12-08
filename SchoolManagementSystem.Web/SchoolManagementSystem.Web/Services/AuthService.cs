@@ -131,6 +131,19 @@ public class AuthService : IAuthService
 
     public async Task<(bool Success, string Message)> UploadProfilePictureAsync(string userId, byte[] imageData, string contentType)
     {
+        // Server-side file validation (basic)
+        var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/jpg" };
+        if (!allowedContentTypes.Contains(contentType.ToLower()))
+        {
+            return (false, "Invalid file type. Only JPEG and PNG are allowed.");
+        }
+
+        // Ensure image data is not empty and reasonably sized (already checked on client but double check)
+        if (imageData == null || imageData.Length == 0 || imageData.Length > 2 * 1024 * 1024)
+        {
+            return (false, "Invalid file size.");
+        }
+
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null) return (false, "User not found");
 

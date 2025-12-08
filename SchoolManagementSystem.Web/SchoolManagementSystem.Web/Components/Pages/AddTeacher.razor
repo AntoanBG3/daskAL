@@ -6,6 +6,7 @@
 @using SchoolManagementSystem.Web.DTOs
 @using Microsoft.AspNetCore.Identity
 @using SchoolManagementSystem.Web.Models.Auth
+@using Microsoft.AspNetCore.Components
 @inject UserManager<User> UserManager
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 
@@ -85,16 +86,6 @@
                      {
                          await UserManager.AddToRoleAsync(user, "Teacher");
                      }
-
-                     // 3. RegisterAsync creates a pending Student entity. We should remove that.
-                     // The teacher entity is created by TeacherService.AddTeacherAsync below.
-                     // We don't want a stray Student record for this teacher.
-                     var dbContext = (SchoolManagementSystem.Web.Data.SchoolDbContext)TeacherService.GetType()
-                         .GetField("_context", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                         ?.GetValue(TeacherService)!;
-
-                     // Since I cannot access _context easily if private, let's inject DbContext or use a hack.
-                     // Wait, I can inject DbContext into the page.
                  }
             }
         }
@@ -110,7 +101,7 @@
         NavigationManager.NavigateTo("/teachers");
     }
 
-    [inject]
+    [Inject]
     SchoolManagementSystem.Web.Data.SchoolDbContext DbContext { get; set; }
 
     private async Task CleanupPendingStudent(string userId)
