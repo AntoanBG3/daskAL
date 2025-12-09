@@ -63,6 +63,18 @@
     --sidebar-heading-color: #64748b;
 }
 
+[data-sidebar-theme="dark"] .brand-logo,
+[data-sidebar-theme="navy"] .brand-logo {
+    color: #ffffff !important;
+    text-shadow: -0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000;
+}
+
+[data-sidebar-theme="dark"] .brand-logo i,
+[data-sidebar-theme="navy"] .brand-logo i {
+    color: #ffffff !important;
+    text-shadow: -0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000, -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000;
+}
+
 [data-sidebar-theme="light"] {
     --sidebar-bg: #ffffff;
     --sidebar-color: #64748b;
