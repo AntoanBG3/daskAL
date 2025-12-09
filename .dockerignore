@@ -1,7 +1,10 @@
+**/.git
+**/.vs
 **/bin/
 **/obj/
-.git/
-.gitignore
-.vs/
-.vscode/
-**/school.db
+**/TestResults/
+school.db
+school.db-shm
+school.db-wal
+**/.DS_Store
+**/.env
