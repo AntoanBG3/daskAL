@@ -128,8 +128,23 @@ public class AuthService : IAuthService
             // Since this is called from a component, NavigationManager should have the correct base URI
             var callbackUrl = $"{_navigationManager.BaseUri}confirm-email?userId={userId}&code={code}";
 
-            await _emailSender.SendEmailAsync(request.Email, "Confirm your email",
-                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+            try
+            {
+                await _emailSender.SendEmailAsync(request.Email, "Confirm your email",
+                    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending email during registration for {Email}.", request.Email);
+
+                // Rollback: Delete the student and the user so they can try again
+                _context.Students.Remove(student);
+                await _context.SaveChangesAsync();
+
+                await _userManager.DeleteAsync(user);
+
+                return (false, new[] { "Registration failed: Unable to send verification email. Please try again later or contact support." });
+            }
 
             return (true, Enumerable.Empty<string>());
         }
