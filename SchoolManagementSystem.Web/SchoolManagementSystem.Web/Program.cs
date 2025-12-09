@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using SchoolManagementSystem.Web.Models.Auth;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using SchoolManagementSystem.Web.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,7 +49,11 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/access-denied";
 });
 
-builder.Services.AddTransient<IEmailSender, LoggingEmailSender>(); // Added Email Sender
+// Configure SMTP Settings
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+
+// Register Email Sender
+builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 
 builder.Services.AddScoped<ClassService>();
 builder.Services.AddScoped<StudentService>();
