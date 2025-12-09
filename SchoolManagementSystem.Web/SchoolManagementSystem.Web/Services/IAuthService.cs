@@ -10,6 +10,9 @@ public interface IAuthService
     Task<(bool Success, IEnumerable<string> Errors)> RegisterAsync(RegisterRequest request);
     Task<(bool Success, string Message)> ChangePasswordAsync(string userId, string currentPassword, string newPassword);
 
+    // Email Confirmation
+    Task<(bool Success, string Message)> ConfirmEmailAsync(string userId, string code);
+
     // Profile Picture Methods
     Task<(bool Success, string Message)> UploadProfilePictureAsync(string userId, byte[] imageData, string contentType);
     Task<(bool Success, string Message)> ApproveProfilePictureAsync(string userId);

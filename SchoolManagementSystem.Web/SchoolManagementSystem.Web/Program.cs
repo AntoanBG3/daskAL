@@ -6,6 +6,7 @@ using SchoolManagementSystem.Web.Services;
 using Microsoft.AspNetCore.Identity;
 using SchoolManagementSystem.Web.Models.Auth;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,7 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddIdentity<User, Role>(options => 
     {
-        options.SignIn.RequireConfirmedAccount = false;
+        options.SignIn.RequireConfirmedAccount = true; // Changed to true
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
         options.Password.RequireUppercase = true;
@@ -46,6 +47,8 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/login";
     options.AccessDeniedPath = "/access-denied";
 });
+
+builder.Services.AddTransient<IEmailSender, LoggingEmailSender>(); // Added Email Sender
 
 builder.Services.AddScoped<ClassService>();
 builder.Services.AddScoped<StudentService>();
@@ -109,24 +112,28 @@ try
     {
         var services = scope.ServiceProvider;
         var context = services.GetRequiredService<SchoolDbContext>();
-        // context.Database.EnsureCreated(); // EnsureCreated bypasses migrations, use Migrate if using migrations, or just EnsureCreated for quick dev
         context.Database.Migrate(); 
 
-        await DbSeeder.SeedRolesAndUsersAsync(services);
+        // Always seed roles
+        await DbSeeder.SeedRolesAsync(services);
 
-        // Optional: Seed Legacy Data
-        /* 
-        var service = services.GetRequiredService<SchoolService>();
-        string jsonPath = "school_data.json"; 
-        await service.ImportFromLegacyJsonAsync(jsonPath);
-        */
+        // Check for --seed-admin argument
+        if (args.Contains("--seed-admin"))
+        {
+             await DbSeeder.SeedAdminAsync(services);
+
+             if (args.Contains("--only-seed"))
+             {
+                 return;
+             }
+        }
     }
 }
 catch (Exception ex)
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
     logger.LogCritical(ex, "An error occurred while initializing the database.");
-    throw; // Re-throw to ensure the process exits, but detailed log is captured first
+    throw;
 }
 
 app.Run();

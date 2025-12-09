@@ -15,6 +15,8 @@
 *   **Administrator:** Full control over the system. Manage users, classes, subjects, and view all data.
 *   **Teacher:** Manage student grades, view assigned subjects, record absences, and communicate with students.
 *   **Student:** View personal dashboard, check grades, see assigned teachers, and access school messages.
+*   **Email Verification:** New users must confirm their email address before accessing the system.
+*   **Account Approval:** New student accounts require administrator approval after email verification.
 
 ### 📚 Academic Management
 *   **Class & Subject Management:** Organize school classes and curriculum subjects easily.
@@ -49,20 +51,43 @@
     cd SchoolManagementSystem.Web/SchoolManagementSystem.Web
     ```
 
-3.  **Run the Application**
+3.  **Database Setup (Admin Seeding)**
+
+    The application does not automatically create an admin account by default. You must run the application with the `--seed-admin` flag once to create the initial administrator account.
+
+    ```bash
+    dotnet run --seed-admin
+    ```
+    *This will create the database (if missing), apply migrations, and seed the default admin account. It will then start the application.*
+
+    If you want to only seed and exit:
+    ```bash
+    dotnet run --seed-admin --only-seed
+    ```
+
+4.  **Run the Application**
+    After the initial setup, you can run the application normally:
     ```bash
     dotnet run
     ```
-    *The database will be automatically created and seeded with default data upon first run.*
 
-4.  **Access the App**
+5.  **Access the App**
     Open your browser and navigate to `http://localhost:5000` (or the URL shown in your console).
+
+### 📧 Email Verification (Development)
+
+In the development environment, no actual emails are sent. Instead, the email confirmation link is logged to the **console output**.
+
+1.  Register a new user.
+2.  Check the console where `dotnet run` is executing.
+3.  Look for a log entry starting with `Sending email to...`.
+4.  Copy the confirmation link (e.g., `http://localhost:5000/confirm-email?userId=...`) and paste it into your browser to verify the account.
 
 ---
 
 ## 🔑 Default Login Credentials
 
-For testing purposes, the system is pre-seeded with the following accounts:
+If you ran the seeding command, the following admin account is created:
 
 | Role | Email | Password |
 | :--- | :--- | :--- |

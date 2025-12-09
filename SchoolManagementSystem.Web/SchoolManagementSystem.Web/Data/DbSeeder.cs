@@ -6,11 +6,9 @@ namespace SchoolManagementSystem.Web.Data
 {
     public static class DbSeeder
     {
-        public static async Task SeedRolesAndUsersAsync(IServiceProvider serviceProvider)
+        public static async Task SeedRolesAsync(IServiceProvider serviceProvider)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
-            var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
-            var dbContext = serviceProvider.GetRequiredService<SchoolDbContext>();
 
             string[] roleNames = { "Admin", "Teacher", "Student" };
 
@@ -22,6 +20,11 @@ namespace SchoolManagementSystem.Web.Data
                     await roleManager.CreateAsync(new Role(roleName));
                 }
             }
+        }
+
+        public static async Task SeedAdminAsync(IServiceProvider serviceProvider)
+        {
+            var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
 
             // Seed Admin
             var adminEmail = "admin@school.com";
@@ -42,10 +45,25 @@ namespace SchoolManagementSystem.Web.Data
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(newAdmin, "Admin");
+                    Console.WriteLine("Admin account seeded successfully.");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to seed admin: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                 }
             }
+            else
+            {
+                Console.WriteLine("Admin account already exists.");
+            }
+        }
 
-            // Do NOT seed Teacher and Student accounts as per requirements (Clean Slate).
+        public static async Task SeedRolesAndUsersAsync(IServiceProvider serviceProvider)
+        {
+            // Backward compatibility or full seed if needed, but we are splitting it.
+            // For now, let's just call SeedRolesAsync.
+            // The instruction is to remove automatic admin seeding.
+            await SeedRolesAsync(serviceProvider);
         }
     }
 }

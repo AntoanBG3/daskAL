@@ -1,4 +1,9 @@
+using System.Text;
+using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using SchoolManagementSystem.Web.Data;
 using SchoolManagementSystem.Web.DTOs;
@@ -13,17 +18,23 @@ public class AuthService : IAuthService
     private readonly SignInManager<User> _signInManager;
     private readonly ILogger<AuthService> _logger;
     private readonly SchoolDbContext _context;
+    private readonly IEmailSender _emailSender;
+    private readonly NavigationManager _navigationManager;
 
     public AuthService(
         UserManager<User> userManager,
         SignInManager<User> signInManager,
         ILogger<AuthService> logger,
-        SchoolDbContext context)
+        SchoolDbContext context,
+        IEmailSender emailSender,
+        NavigationManager navigationManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _logger = logger;
         _context = context;
+        _emailSender = emailSender;
+        _navigationManager = navigationManager;
     }
 
     public async Task<(bool Success, string Message)> LoginAsync(LoginRequest request)
@@ -33,6 +44,11 @@ public class AuthService : IAuthService
         {
             // Generic error message to prevent enumeration
             return (false, "Invalid login attempt.");
+        }
+
+        if (!user.EmailConfirmed)
+        {
+             return (false, "You must confirm your email before logging in.");
         }
 
         if (!user.IsActive)
@@ -56,6 +72,11 @@ public class AuthService : IAuthService
             _logger.LogWarning("User account locked out: {Email}", request.Email);
             await LogAttempt(request.Email, false, "LockedOut");
             return (false, "Account is locked due to multiple failed attempts. Try again later.");
+        }
+
+        if (result.IsNotAllowed)
+        {
+             return (false, "You need to confirm your email.");
         }
 
         await LogAttempt(request.Email, false, "InvalidCredentials");
@@ -98,10 +119,43 @@ public class AuthService : IAuthService
             _context.Students.Add(student);
             await _context.SaveChangesAsync();
 
+            // Email Confirmation
+            var userId = await _userManager.GetUserIdAsync(user);
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+            // Construct full URL using NavigationManager base URI
+            // Since this is called from a component, NavigationManager should have the correct base URI
+            var callbackUrl = $"{_navigationManager.BaseUri}confirm-email?userId={userId}&code={code}";
+
+            await _emailSender.SendEmailAsync(request.Email, "Confirm your email",
+                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
             return (true, Enumerable.Empty<string>());
         }
 
         return (false, result.Errors.Select(e => e.Description));
+    }
+
+    public async Task<(bool Success, string Message)> ConfirmEmailAsync(string userId, string code)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return (false, "Unable to load user.");
+        }
+
+        code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+        var result = await _userManager.ConfirmEmailAsync(user, code);
+
+        if (result.Succeeded)
+        {
+            return (true, "Thank you for confirming your email.");
+        }
+        else
+        {
+            return (false, "Error confirming your email.");
+        }
     }
 
     public async Task<(bool Success, string Message)> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
