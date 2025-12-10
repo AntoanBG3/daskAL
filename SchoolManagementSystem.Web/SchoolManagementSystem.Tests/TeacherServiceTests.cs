@@ -50,5 +50,68 @@ namespace SchoolManagementSystem.Tests
                 Assert.Equal("user-123", teacher.UserId);
             }
         }
+
+        [Fact]
+        public async Task GetTeacherByIdAsync_ReturnsTeacher()
+        {
+            using (var context = CreateContext())
+            {
+                context.Teachers.Add(new Teacher { Id = 1, FirstName = "T", LastName = "One" });
+                await context.SaveChangesAsync();
+            }
+
+            using (var context = CreateContext())
+            {
+                var service = new TeacherService(context, _mockLogger.Object);
+                var result = await service.GetTeacherByIdAsync(1);
+
+                Assert.NotNull(result);
+                Assert.Equal("T", result.FirstName);
+            }
+        }
+
+        [Fact]
+        public async Task UpdateTeacherAsync_UpdatesTeacher()
+        {
+            using (var context = CreateContext())
+            {
+                context.Teachers.Add(new Teacher { Id = 2, FirstName = "Old", LastName = "Name" });
+                await context.SaveChangesAsync();
+            }
+
+            using (var context = CreateContext())
+            {
+                var service = new TeacherService(context, _mockLogger.Object);
+                var model = new TeacherViewModel { Id = 2, FirstName = "New", LastName = "Name" };
+                await service.UpdateTeacherAsync(model);
+            }
+
+            using (var context = CreateContext())
+            {
+                var teacher = await context.Teachers.FindAsync(2);
+                Assert.Equal("New", teacher.FirstName);
+            }
+        }
+
+        [Fact]
+        public async Task DeleteTeacherAsync_DeletesTeacher()
+        {
+            using (var context = CreateContext())
+            {
+                context.Teachers.Add(new Teacher { Id = 3, FirstName = "To", LastName = "Delete" });
+                await context.SaveChangesAsync();
+            }
+
+            using (var context = CreateContext())
+            {
+                var service = new TeacherService(context, _mockLogger.Object);
+                await service.DeleteTeacherAsync(3);
+            }
+
+            using (var context = CreateContext())
+            {
+                Assert.Empty(context.Teachers);
+            }
+        }
     }
 }

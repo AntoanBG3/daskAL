@@ -128,6 +128,13 @@
                     </button>
                     <button class="btn btn-secondary ms-2" @onclick='() => SetTab("inbox")'>Cancel</button>
                 </div>
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <div class="alert alert-danger mt-3 alert-dismissible fade show" role="alert">
+                        @ErrorMessage
+                        <button type="button" class="btn-close" @onclick="() => ErrorMessage = null" aria-label="Close"></button>
+                    </div>
+                }
             </div>
         }
     }
@@ -265,9 +272,14 @@
         catch (Exception ex)
         {
             // Show error (alert)
-            Console.WriteLine(ex.Message);
+            // Ideally we should use a toast service or similar. For now, we don't have a UI element for errors.
+            // Let's at least log it properly if we had a logger, but in Blazor Wasm/Server component we can inject ILogger.
+            // I'll add an alert box for the user.
+            ErrorMessage = $"Error sending message: {ex.Message}";
         }
     }
+
+    private string? ErrorMessage;
     
     public class RecipientOption
     {
