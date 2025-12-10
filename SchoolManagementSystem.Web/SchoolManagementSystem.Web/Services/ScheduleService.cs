@@ -35,74 +35,86 @@ namespace SchoolManagementSystem.Web.Services
                     throw new ArgumentException("Start time must be before end time.");
                 }
 
-                // Verify ClassSubject exists
-                var classSubject = await _context.ClassSubjects
-                    .Include(cs => cs.Subject)
-                    .FirstOrDefaultAsync(cs => cs.SchoolClassId == schoolClassId && cs.SubjectId == subjectId);
+                using var transaction = await _context.Database.BeginTransactionAsync();
 
-                if (classSubject == null)
+                try
                 {
-                    throw new ArgumentException("The specified class-subject combination does not exist.");
-                }
+                    // Verify ClassSubject exists
+                    var classSubject = await _context.ClassSubjects
+                        .Include(cs => cs.Subject)
+                        .FirstOrDefaultAsync(cs => cs.SchoolClassId == schoolClassId && cs.SubjectId == subjectId);
 
-                var teacherId = classSubject.Subject?.TeacherId;
+                    if (classSubject == null)
+                    {
+                        throw new ArgumentException("The specified class-subject combination does not exist.");
+                    }
 
-                // 1. Check Teacher Availability (if subject has a teacher)
-                if (teacherId.HasValue)
-                {
-                    var teacherConflict = await _context.ScheduleEntries
-                        .Include(se => se.ClassSubject)
-                        .ThenInclude(cs => cs.Subject)
+                    var teacherId = classSubject.Subject?.TeacherId;
+
+                    // 1. Check Teacher Availability (if subject has a teacher)
+                    if (teacherId.HasValue)
+                    {
+                        var teacherConflict = await _context.ScheduleEntries
+                            .Include(se => se.ClassSubject)
+                            .ThenInclude(cs => cs.Subject)
+                            .AnyAsync(se =>
+                                se.ClassSubject.Subject.TeacherId == teacherId.Value &&
+                                se.DayOfWeek == dayOfWeek &&
+                                se.StartTime < endTime && se.EndTime > startTime);
+
+                        if (teacherConflict)
+                        {
+                            throw new InvalidOperationException("The teacher is already booked during this time slot.");
+                        }
+                    }
+
+                    // 2. Check Class Availability
+                    var classConflict = await _context.ScheduleEntries
                         .AnyAsync(se =>
-                            se.ClassSubject.Subject.TeacherId == teacherId.Value &&
+                            se.SchoolClassId == schoolClassId &&
                             se.DayOfWeek == dayOfWeek &&
                             se.StartTime < endTime && se.EndTime > startTime);
 
-                    if (teacherConflict)
+                    if (classConflict)
                     {
-                        throw new InvalidOperationException("The teacher is already booked during this time slot.");
+                        throw new InvalidOperationException("The class is already booked during this time slot.");
                     }
-                }
 
-                // 2. Check Class Availability
-                var classConflict = await _context.ScheduleEntries
-                    .AnyAsync(se =>
-                        se.SchoolClassId == schoolClassId &&
-                        se.DayOfWeek == dayOfWeek &&
-                        se.StartTime < endTime && se.EndTime > startTime);
-
-                if (classConflict)
-                {
-                    throw new InvalidOperationException("The class is already booked during this time slot.");
-                }
-
-                // 3. Check Room Availability (if room is specified)
-                if (!string.IsNullOrEmpty(roomNumber))
-                {
-                    var roomConflict = await _context.ScheduleEntries
-                        .AnyAsync(se =>
-                            se.RoomNumber == roomNumber &&
-                            se.DayOfWeek == dayOfWeek &&
-                            se.StartTime < endTime && se.EndTime > startTime);
-
-                    if (roomConflict)
+                    // 3. Check Room Availability (if room is specified)
+                    if (!string.IsNullOrEmpty(roomNumber))
                     {
-                        throw new InvalidOperationException($"Room {roomNumber} is already booked during this time slot.");
+                        var roomConflict = await _context.ScheduleEntries
+                            .AnyAsync(se =>
+                                se.RoomNumber == roomNumber &&
+                                se.DayOfWeek == dayOfWeek &&
+                                se.StartTime < endTime && se.EndTime > startTime);
+
+                        if (roomConflict)
+                        {
+                            throw new InvalidOperationException($"Room {roomNumber} is already booked during this time slot.");
+                        }
                     }
+
+                    var entry = new ScheduleEntry
+                    {
+                        SchoolClassId = schoolClassId,
+                        SubjectId = subjectId,
+                        DayOfWeek = dayOfWeek,
+                        StartTime = startTime,
+                        EndTime = endTime,
+                        RoomNumber = roomNumber
+                    };
+
+                    _context.ScheduleEntries.Add(entry);
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
                 }
-
-                var entry = new ScheduleEntry
+                catch
                 {
-                    SchoolClassId = schoolClassId,
-                    SubjectId = subjectId,
-                    DayOfWeek = dayOfWeek,
-                    StartTime = startTime,
-                    EndTime = endTime,
-                    RoomNumber = roomNumber
-                };
-
-                _context.ScheduleEntries.Add(entry);
-                await _context.SaveChangesAsync();
+                    await transaction.RollbackAsync();
+                    throw;
+                }
 
             }, $"Error adding schedule entry for Class {schoolClassId}, Subject {subjectId}");
         }

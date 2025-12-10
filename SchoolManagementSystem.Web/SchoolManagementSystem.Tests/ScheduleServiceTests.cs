@@ -22,6 +22,7 @@ namespace SchoolManagementSystem.Tests.Services
         {
             var options = new DbContextOptionsBuilder<SchoolDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .ConfigureWarnings(x => x.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
                 .Options;
 
             _context = new SchoolDbContext(options);
@@ -166,6 +167,50 @@ namespace SchoolManagementSystem.Tests.Services
             // Try to schedule Class B, Room 101 at Mon 8:30-9:30 (Overlap)
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _service.AddScheduleEntryAsync(2, 2, DayOfWeek.Monday, new TimeSpan(8, 30, 0), new TimeSpan(9, 30, 0), "101"));
+        }
+
+        [Fact]
+        public async Task Should_Reject_Overlapping_Schedule()
+        {
+            // Arrange
+            var teacher = new Teacher { Id = 1, FirstName = "John", LastName = "Doe" };
+            var subject = new Subject { Id = 1, Name = "Math", TeacherId = teacher.Id };
+            var schoolClass = new SchoolClass { Id = 1, Name = "Class A" };
+            var classSubject = new ClassSubject { SchoolClassId = schoolClass.Id, SubjectId = subject.Id, Subject = subject, SchoolClass = schoolClass };
+
+            _context.Teachers.Add(teacher);
+            _context.Subjects.Add(subject);
+            _context.SchoolClasses.Add(schoolClass);
+            _context.ClassSubjects.Add(classSubject);
+
+            // Existing: 10:00 - 11:00
+            _context.ScheduleEntries.Add(new ScheduleEntry
+            {
+                SchoolClassId = 1,
+                SubjectId = 1,
+                DayOfWeek = DayOfWeek.Wednesday,
+                StartTime = new TimeSpan(10, 0, 0),
+                EndTime = new TimeSpan(11, 0, 0),
+                ClassSubject = classSubject
+            });
+            await _context.SaveChangesAsync();
+
+            // Act & Assert
+            // Overlap Case 1: New Starts inside Existing (10:30 - 11:30)
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _service.AddScheduleEntryAsync(1, 1, DayOfWeek.Wednesday, new TimeSpan(10, 30, 0), new TimeSpan(11, 30, 0), null));
+
+            // Overlap Case 2: New Ends inside Existing (09:30 - 10:30)
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _service.AddScheduleEntryAsync(1, 1, DayOfWeek.Wednesday, new TimeSpan(9, 30, 0), new TimeSpan(10, 30, 0), null));
+
+            // Overlap Case 3: New Encloses Existing (09:00 - 12:00)
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _service.AddScheduleEntryAsync(1, 1, DayOfWeek.Wednesday, new TimeSpan(9, 0, 0), new TimeSpan(12, 0, 0), null));
+
+            // Overlap Case 4: Exact Match (10:00 - 11:00)
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _service.AddScheduleEntryAsync(1, 1, DayOfWeek.Wednesday, new TimeSpan(10, 0, 0), new TimeSpan(11, 0, 0), null));
         }
     }
 }
