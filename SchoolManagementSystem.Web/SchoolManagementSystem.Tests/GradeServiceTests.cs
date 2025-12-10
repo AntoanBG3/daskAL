@@ -59,5 +59,26 @@ namespace SchoolManagementSystem.Tests
                 Assert.Equal(5, grade.Value);
             }
         }
+
+        [Fact]
+        public async Task GetGradesForStudentAsync_ReturnsGrades()
+        {
+            using (var context = CreateContext())
+            {
+                context.Grades.Add(new Grade { Id = 1, StudentId = 1, SubjectName = "Math", Value = 5 });
+                context.Grades.Add(new Grade { Id = 2, StudentId = 1, SubjectName = "Science", Value = 4 });
+                context.Grades.Add(new Grade { Id = 3, StudentId = 2, SubjectName = "History", Value = 6 }); // Other student
+                await context.SaveChangesAsync();
+            }
+
+            using (var context = CreateContext())
+            {
+                var service = new GradeService(context, _mockLogger.Object);
+                var result = await service.GetGradesForStudentAsync(1);
+
+                Assert.Equal(2, result.Count);
+                Assert.All(result, r => Assert.Equal(1, r.StudentId));
+            }
+        }
     }
 }

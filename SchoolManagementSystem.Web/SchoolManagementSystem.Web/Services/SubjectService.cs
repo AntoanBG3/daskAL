@@ -5,20 +5,18 @@ using SchoolManagementSystem.Web.Models.ViewModels;
 
 namespace SchoolManagementSystem.Web.Services
 {
-    public class SubjectService
+    public class SubjectService : BaseService<SubjectService>
     {
         private readonly SchoolDbContext _context;
-        private readonly ILogger<SubjectService> _logger;
 
-        public SubjectService(SchoolDbContext context, ILogger<SubjectService> logger)
+        public SubjectService(SchoolDbContext context, ILogger<SubjectService> logger) : base(logger)
         {
             _context = context;
-            _logger = logger;
         }
 
         public async Task<List<SubjectViewModel>> GetAllSubjectsAsync()
         {
-            try
+            return await ExecuteSafeAsync(async () =>
             {
                 var subjects = await _context.Subjects.Include(s => s.Teacher).ToListAsync();
                 return subjects.Select(s => new SubjectViewModel
@@ -29,17 +27,12 @@ namespace SchoolManagementSystem.Web.Services
                     TeacherId = s.TeacherId,
                     TeacherName = s.Teacher != null ? s.Teacher.FullName : "Unassigned"
                 }).ToList();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving all subjects.");
-                return new List<SubjectViewModel>();
-            }
+            }, "Error occurred while retrieving all subjects.", new List<SubjectViewModel>());
         }
 
         public async Task<SubjectViewModel?> GetSubjectByIdAsync(int id)
         {
-            try
+            return await ExecuteSafeAsync(async () =>
             {
                 var s = await _context.Subjects.Include(x => x.Teacher).FirstOrDefaultAsync(x => x.Id == id);
                 if (s == null) return null;
@@ -52,17 +45,12 @@ namespace SchoolManagementSystem.Web.Services
                     TeacherId = s.TeacherId,
                     TeacherName = s.Teacher != null ? s.Teacher.FullName : "Unassigned"
                 };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving subject with ID {SubjectId}", id);
-                return null;
-            }
+            }, $"Error occurred while retrieving subject with ID {id}", null);
         }
 
         public async Task AddSubjectAsync(SubjectViewModel model)
         {
-            try
+            await ExecuteSafeAsync(async () =>
             {
                 var subject = new Subject
                 {
@@ -72,17 +60,12 @@ namespace SchoolManagementSystem.Web.Services
                 };
                 _context.Subjects.Add(subject);
                 await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while adding subject {SubjectName}", model.Name);
-                throw;
-            }
+            }, $"Error occurred while adding subject {model.Name}");
         }
 
         public async Task UpdateSubjectAsync(SubjectViewModel model)
         {
-            try
+            await ExecuteSafeAsync(async () =>
             {
                 var subject = await _context.Subjects.FindAsync(model.Id);
                 if (subject != null)
@@ -92,17 +75,12 @@ namespace SchoolManagementSystem.Web.Services
                     subject.TeacherId = model.TeacherId;
                     await _context.SaveChangesAsync();
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while updating subject {SubjectId}", model.Id);
-                throw;
-            }
+            }, $"Error occurred while updating subject {model.Id}");
         }
         
         public async Task DeleteSubjectAsync(int id)
         {
-            try
+            await ExecuteSafeAsync(async () =>
             {
                  var subject = await _context.Subjects.FindAsync(id);
                  if (subject != null)
@@ -110,17 +88,12 @@ namespace SchoolManagementSystem.Web.Services
                      _context.Subjects.Remove(subject);
                      await _context.SaveChangesAsync();
                  }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while deleting subject {SubjectId}", id);
-                throw;
-            }
+            }, $"Error occurred while deleting subject {id}");
         }
         
         public async Task<List<SubjectViewModel>> GetAvailableSubjectsForStudentAsync(int studentId)
         {
-            try
+            return await ExecuteSafeAsync(async () =>
             {
                 var student = await _context.Students.FindAsync(studentId);
                 if (student == null || student.SchoolClassId == null) return new List<SubjectViewModel>();
@@ -138,12 +111,7 @@ namespace SchoolManagementSystem.Web.Services
                     Name = s.Name, 
                     TeacherName = s.Teacher != null ? s.Teacher.FullName : "Unassigned"
                 }).ToList();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving available subjects for student {StudentId}", studentId);
-                return new List<SubjectViewModel>();
-            }
+            }, $"Error occurred while retrieving available subjects for student {studentId}", new List<SubjectViewModel>());
         }
     }
 }

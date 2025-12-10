@@ -5,20 +5,18 @@ using SchoolManagementSystem.Web.Models.ViewModels;
 
 namespace SchoolManagementSystem.Web.Services
 {
-    public class StudentService
+    public class StudentService : BaseService<StudentService>
     {
         private readonly SchoolDbContext _context;
-        private readonly ILogger<StudentService> _logger;
 
-        public StudentService(SchoolDbContext context, ILogger<StudentService> logger)
+        public StudentService(SchoolDbContext context, ILogger<StudentService> logger) : base(logger)
         {
             _context = context;
-            _logger = logger;
         }
 
         public async Task<List<StudentViewModel>> GetAllStudentsAsync()
         {
-            try
+            return await ExecuteSafeAsync(async () =>
             {
                 var students = await _context.Students
                     .Include(s => s.SchoolClass)
@@ -35,17 +33,12 @@ namespace SchoolManagementSystem.Web.Services
                     DateOfBirth = s.DateOfBirth,
                     AverageGrade = s.Grades.Any() ? s.Grades.Average(g => g.Value) : 0
                 }).ToList();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving all students.");
-                return new List<StudentViewModel>();
-            }
+            }, "Error occurred while retrieving all students.", new List<StudentViewModel>());
         }
 
         public async Task AddStudentAsync(StudentViewModel model, int classId)
         {
-            try
+            await ExecuteSafeAsync(async () =>
             {
                 var student = new Student
                 {
@@ -56,12 +49,7 @@ namespace SchoolManagementSystem.Web.Services
                 };
                 _context.Students.Add(student);
                 await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while adding student {StudentName}", model.FirstName + " " + model.LastName);
-                throw;
-            }
+            }, $"Error occurred while adding student {model.FirstName} {model.LastName}");
         }
         
         public async Task AddStudentAsync(StudentViewModel model)
@@ -82,7 +70,7 @@ namespace SchoolManagementSystem.Web.Services
 
         public async Task<StudentViewModel?> GetStudentByIdAsync(int id)
         {
-            try
+            return await ExecuteSafeAsync(async () =>
             {
                 var s = await _context.Students
                     .Include(s => s.SchoolClass)
@@ -101,17 +89,12 @@ namespace SchoolManagementSystem.Web.Services
                     DateOfBirth = s.DateOfBirth,
                     AverageGrade = s.Grades.Any() ? s.Grades.Average(g => g.Value) : 0
                 };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving student with ID {StudentId}", id);
-                return null;
-            }
+            }, $"Error occurred while retrieving student with ID {id}", null);
         }
 
         public async Task UpdateStudentAsync(StudentViewModel model, int classId)
         {
-            try
+            await ExecuteSafeAsync(async () =>
             {
                  var student = await _context.Students.FindAsync(model.Id);
                 if (student != null)
@@ -123,17 +106,12 @@ namespace SchoolManagementSystem.Web.Services
                     
                     await _context.SaveChangesAsync();
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while updating student {StudentId}", model.Id);
-                throw;
-            }
+            }, $"Error occurred while updating student {model.Id}");
         }
 
         public async Task DeleteStudentAsync(int id)
         {
-            try
+            await ExecuteSafeAsync(async () =>
             {
                 var student = await _context.Students.FindAsync(id);
                 if (student != null)
@@ -141,27 +119,17 @@ namespace SchoolManagementSystem.Web.Services
                     _context.Students.Remove(student);
                     await _context.SaveChangesAsync();
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while deleting student {StudentId}", id);
-                throw;
-            }
+            }, $"Error occurred while deleting student {id}");
         }
         
         public async Task<Student?> GetStudentByUserIdAsync(string userId)
         {
-            try
+            return await ExecuteSafeAsync(async () =>
             {
                 return await _context.Students
                     .Include(s => s.SchoolClass)
                     .FirstOrDefaultAsync(s => s.UserId == userId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving student by UserID {UserId}", userId);
-                return null;
-            }
+            }, $"Error occurred while retrieving student by UserID {userId}", null);
         }
     }
 }

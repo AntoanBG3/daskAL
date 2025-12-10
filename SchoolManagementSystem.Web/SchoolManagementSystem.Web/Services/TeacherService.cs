@@ -5,20 +5,18 @@ using SchoolManagementSystem.Web.Models.ViewModels;
 
 namespace SchoolManagementSystem.Web.Services
 {
-    public class TeacherService
+    public class TeacherService : BaseService<TeacherService>
     {
         private readonly SchoolDbContext _context;
-        private readonly ILogger<TeacherService> _logger;
 
-        public TeacherService(SchoolDbContext context, ILogger<TeacherService> logger)
+        public TeacherService(SchoolDbContext context, ILogger<TeacherService> logger) : base(logger)
         {
             _context = context;
-            _logger = logger;
         }
 
         public async Task<List<TeacherViewModel>> GetAllTeachersAsync()
         {
-            try
+            return await ExecuteSafeAsync(async () =>
             {
                 var teachers = await _context.Teachers.Include(t => t.TeachingSubjects).ToListAsync();
                 return teachers.Select(t => new TeacherViewModel
@@ -28,17 +26,12 @@ namespace SchoolManagementSystem.Web.Services
                     LastName = t.LastName,
                     TeachingSubjects = t.TeachingSubjects.Select(s => s.Name).ToList()
                 }).ToList();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving all teachers.");
-                return new List<TeacherViewModel>();
-            }
+            }, "Error occurred while retrieving all teachers.", new List<TeacherViewModel>());
         }
 
         public async Task<TeacherViewModel?> GetTeacherByIdAsync(int id)
         {
-            try
+            return await ExecuteSafeAsync(async () =>
             {
                 var t = await _context.Teachers.Include(x => x.TeachingSubjects).FirstOrDefaultAsync(x => x.Id == id);
                 if (t == null) return null;
@@ -50,12 +43,7 @@ namespace SchoolManagementSystem.Web.Services
                     LastName = t.LastName,
                     TeachingSubjects = t.TeachingSubjects.Select(s => s.Name).ToList()
                 };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving teacher with ID {TeacherId}", id);
-                return null;
-            }
+            }, $"Error occurred while retrieving teacher with ID {id}", null);
         }
 
         public async Task AddTeacherAsync(TeacherViewModel model)
@@ -65,7 +53,7 @@ namespace SchoolManagementSystem.Web.Services
 
         public async Task AddTeacherAsync(TeacherViewModel model, string? userId)
         {
-            try
+            await ExecuteSafeAsync(async () =>
             {
                 var teacher = new Teacher
                 {
@@ -75,17 +63,12 @@ namespace SchoolManagementSystem.Web.Services
                 };
                 _context.Teachers.Add(teacher);
                 await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while adding teacher {TeacherName}", model.FirstName + " " + model.LastName);
-                throw;
-            }
+            }, $"Error occurred while adding teacher {model.FirstName} {model.LastName}");
         }
 
         public async Task UpdateTeacherAsync(TeacherViewModel model)
         {
-            try
+            await ExecuteSafeAsync(async () =>
             {
                 var teacher = await _context.Teachers.FindAsync(model.Id);
                 if (teacher != null)
@@ -94,17 +77,12 @@ namespace SchoolManagementSystem.Web.Services
                     teacher.LastName = model.LastName;
                     await _context.SaveChangesAsync();
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while updating teacher {TeacherId}", model.Id);
-                throw;
-            }
+            }, $"Error occurred while updating teacher {model.Id}");
         }
         
         public async Task DeleteTeacherAsync(int id)
         {
-            try
+            await ExecuteSafeAsync(async () =>
             {
                 var teacher = await _context.Teachers.FindAsync(id);
                 if (teacher != null)
@@ -112,26 +90,16 @@ namespace SchoolManagementSystem.Web.Services
                     _context.Teachers.Remove(teacher);
                     await _context.SaveChangesAsync();
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while deleting teacher {TeacherId}", id);
-                throw;
-            }
+            }, $"Error occurred while deleting teacher {id}");
         }
 
         public async Task<Teacher?> GetTeacherByUserIdAsync(string userId)
         {
-            try
+            return await ExecuteSafeAsync(async () =>
             {
                 return await _context.Teachers
                     .FirstOrDefaultAsync(t => t.UserId == userId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving teacher by UserID {UserId}", userId);
-                return null;
-            }
+            }, $"Error occurred while retrieving teacher by UserID {userId}", null);
         }
     }
 }

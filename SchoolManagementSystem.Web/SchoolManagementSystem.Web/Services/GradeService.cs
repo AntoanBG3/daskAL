@@ -5,20 +5,18 @@ using SchoolManagementSystem.Web.Models.ViewModels;
 
 namespace SchoolManagementSystem.Web.Services
 {
-    public class GradeService
+    public class GradeService : BaseService<GradeService>
     {
         private readonly SchoolDbContext _context;
-        private readonly ILogger<GradeService> _logger;
 
-        public GradeService(SchoolDbContext context, ILogger<GradeService> logger)
+        public GradeService(SchoolDbContext context, ILogger<GradeService> logger) : base(logger)
         {
             _context = context;
-            _logger = logger;
         }
 
         public async Task AddGradeAsync(GradeViewModel model)
         {
-            try
+            await ExecuteSafeAsync(async () =>
             {
                 var grade = new Grade
                 {
@@ -37,17 +35,12 @@ namespace SchoolManagementSystem.Web.Services
 
                 _context.Grades.Add(grade);
                 await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while adding grade for student {StudentId}", model.StudentId);
-                throw;
-            }
+            }, $"Error occurred while adding grade for student {model.StudentId}");
         }
         
         public async Task<List<GradeViewModel>> GetGradesForStudentAsync(int studentId)
         {
-            try
+            return await ExecuteSafeAsync(async () =>
             {
                 var grades = await _context.Grades
                     .Include(g => g.Subject)
@@ -62,12 +55,7 @@ namespace SchoolManagementSystem.Web.Services
                     SubjectName = g.Subject != null ? g.Subject.Name : g.SubjectName, // Prefer relation
                     Value = g.Value
                 }).ToList();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving grades for student {StudentId}", studentId);
-                return new List<GradeViewModel>();
-            }
+            }, $"Error occurred while retrieving grades for student {studentId}", new List<GradeViewModel>());
         }
     }
 }
