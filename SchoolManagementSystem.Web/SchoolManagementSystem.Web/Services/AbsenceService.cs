@@ -4,20 +4,18 @@ using SchoolManagementSystem.Web.Models;
 
 namespace SchoolManagementSystem.Web.Services
 {
-    public class AbsenceService
+    public class AbsenceService : BaseService<AbsenceService>
     {
         private readonly SchoolDbContext _context;
-        private readonly ILogger<AbsenceService> _logger;
 
-        public AbsenceService(SchoolDbContext context, ILogger<AbsenceService> logger)
+        public AbsenceService(SchoolDbContext context, ILogger<AbsenceService> logger) : base(logger)
         {
             _context = context;
-            _logger = logger;
         }
 
         public async Task AddAbsenceAsync(int studentId, int? subjectId, bool isExcused)
         {
-            try
+            await ExecuteSafeAsync(async () =>
             {
                 var absence = new Absence
                 {
@@ -28,29 +26,19 @@ namespace SchoolManagementSystem.Web.Services
                 };
                 _context.Absences.Add(absence);
                 await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while adding absence for student {StudentId}", studentId);
-                throw;
-            }
+            }, $"Error occurred while adding absence for student {studentId}");
         }
 
         public async Task<List<Absence>> GetAbsencesForStudentAsync(int studentId)
         {
-            try
+            return await ExecuteSafeAsync(async () =>
             {
                 return await _context.Absences
                     .Include(a => a.Subject)
                     .Where(a => a.StudentId == studentId)
                     .OrderByDescending(a => a.Date)
                     .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving absences for student {StudentId}", studentId);
-                return new List<Absence>();
-            }
+            }, $"Error occurred while retrieving absences for student {studentId}", new List<Absence>());
         }
     }
 }

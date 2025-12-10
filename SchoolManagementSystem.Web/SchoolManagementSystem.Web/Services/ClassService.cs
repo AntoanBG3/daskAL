@@ -5,20 +5,18 @@ using SchoolManagementSystem.Web.Models.ViewModels;
 
 namespace SchoolManagementSystem.Web.Services
 {
-    public class ClassService
+    public class ClassService : BaseService<ClassService>
     {
         private readonly SchoolDbContext _context;
-        private readonly ILogger<ClassService> _logger;
 
-        public ClassService(SchoolDbContext context, ILogger<ClassService> logger)
+        public ClassService(SchoolDbContext context, ILogger<ClassService> logger) : base(logger)
         {
             _context = context;
-            _logger = logger;
         }
 
         public async Task<List<SchoolClassViewModel>> GetAllClassesAsync()
         {
-            try
+            return await ExecuteSafeAsync(async () =>
             {
                 var classes = await _context.SchoolClasses
                     .Include(c => c.ClassSubjects)
@@ -31,17 +29,12 @@ namespace SchoolManagementSystem.Web.Services
                     Name = c.Name,
                     AssignedSubjects = c.ClassSubjects.Select(cs => cs.Subject?.Name ?? "Unknown").ToList()
                 }).ToList();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving all classes.");
-                return new List<SchoolClassViewModel>();
-            }
+            }, "Error occurred while retrieving all classes.", new List<SchoolClassViewModel>());
         }
 
         public async Task<SchoolClassViewModel?> GetClassByIdAsync(int id)
         {
-            try
+            return await ExecuteSafeAsync(async () =>
             {
                 var c = await _context.SchoolClasses
                     .Include(c => c.ClassSubjects)
@@ -56,32 +49,22 @@ namespace SchoolManagementSystem.Web.Services
                     Name = c.Name,
                     AssignedSubjects = c.ClassSubjects.Select(cs => cs.Subject?.Name ?? "Unknown").ToList()
                 };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving class with ID {ClassId}", id);
-                return null;
-            }
+            }, $"Error occurred while retrieving class with ID {id}", null);
         }
 
         public async Task AddClassAsync(SchoolClassViewModel model)
         {
-            try
+            await ExecuteSafeAsync(async () =>
             {
                 var schoolClass = new SchoolClass { Name = model.Name };
                 _context.SchoolClasses.Add(schoolClass);
                 await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while adding class {ClassName}", model.Name);
-                throw;
-            }
+            }, $"Error occurred while adding class {model.Name}");
         }
 
         public async Task UpdateClassAsync(SchoolClassViewModel model)
         {
-            try
+            await ExecuteSafeAsync(async () =>
             {
                 var schoolClass = await _context.SchoolClasses.FindAsync(model.Id);
                 if (schoolClass != null)
@@ -89,17 +72,12 @@ namespace SchoolManagementSystem.Web.Services
                     schoolClass.Name = model.Name;
                     await _context.SaveChangesAsync();
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while updating class {ClassId}", model.Id);
-                throw;
-            }
+            }, $"Error occurred while updating class {model.Id}");
         }
 
         public async Task UpdateClassSubjectsAsync(int classId, List<int> subjectIds)
         {
-            try
+            await ExecuteSafeAsync(async () =>
             {
                 var schoolClass = await _context.SchoolClasses
                     .Include(c => c.ClassSubjects)
@@ -118,12 +96,7 @@ namespace SchoolManagementSystem.Web.Services
                     
                     await _context.SaveChangesAsync();
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while updating subjects for class {ClassId}", classId);
-                throw;
-            }
+            }, $"Error occurred while updating subjects for class {classId}");
         }
     }
 }
