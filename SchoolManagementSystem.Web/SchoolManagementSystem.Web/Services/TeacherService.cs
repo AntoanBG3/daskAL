@@ -8,10 +8,12 @@ namespace SchoolManagementSystem.Web.Services
     public class TeacherService : BaseService<TeacherService>
     {
         private readonly SchoolDbContext _context;
+        private readonly Microsoft.AspNetCore.Identity.UserManager<SchoolManagementSystem.Web.Models.Auth.User> _userManager;
 
-        public TeacherService(SchoolDbContext context, ILogger<TeacherService> logger) : base(logger)
+        public TeacherService(SchoolDbContext context, Microsoft.AspNetCore.Identity.UserManager<SchoolManagementSystem.Web.Models.Auth.User> userManager, ILogger<TeacherService> logger) : base(logger)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public async Task<List<TeacherViewModel>> GetAllTeachersAsync()
@@ -35,12 +37,24 @@ namespace SchoolManagementSystem.Web.Services
             {
                 var t = await _context.Teachers.Include(x => x.TeachingSubjects).FirstOrDefaultAsync(x => x.Id == id);
                 if (t == null) return null;
+
+                var email = "";
+                if (!string.IsNullOrEmpty(t.UserId))
+                {
+                    var user = await _userManager.FindByIdAsync(t.UserId);
+                    if (user != null)
+                    {
+                        email = user.Email ?? "";
+                    }
+                }
                 
                 return new TeacherViewModel
                 {
                     Id = t.Id,
                     FirstName = t.FirstName,
                     LastName = t.LastName,
+                    Email = email,
+                    UserId = t.UserId,
                     TeachingSubjects = t.TeachingSubjects.Select(s => s.Name).ToList()
                 };
             }, $"Error occurred while retrieving teacher with ID {id}", null);
@@ -75,6 +89,57 @@ namespace SchoolManagementSystem.Web.Services
                 {
                     teacher.FirstName = model.FirstName;
                     teacher.LastName = model.LastName;
+                    
+                    if (!string.IsNullOrEmpty(teacher.UserId))
+                    {
+                         var user = await _userManager.FindByIdAsync(teacher.UserId);
+                         if (user != null)
+                         {
+                             // Update Email (and Username as they should be sync)
+                             if (!string.Equals(user.Email, model.Email, StringComparison.OrdinalIgnoreCase))
+                             {
+                                 user.Email = model.Email;
+                                 user.UserName = model.Email;
+                                 await _userManager.UpdateAsync(user);
+                             }
+
+                             // Update Password if provided
+                             if (!string.IsNullOrWhiteSpace(model.Password))
+                             {
+                                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                                 var result = await _userManager.ResetPasswordAsync(user, token, model.Password);
+                                 if (!result.Succeeded)
+                                 {
+                                     throw new Exception($"Failed to reset password: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                                 }
+                             }
+                         }
+                    }
+                    else if (!string.IsNullOrEmpty(model.Email) && !string.IsNullOrEmpty(model.Password))
+                    {
+                        // Create new User
+                         var user = new SchoolManagementSystem.Web.Models.Auth.User
+                         {
+                             UserName = model.Email,
+                             Email = model.Email,
+                             FirstName = model.FirstName,
+                             LastName = model.LastName,
+                             CreatedAt = DateTime.UtcNow,
+                             IsActive = true // Active by default when created by Admin
+                         };
+
+                         var result = await _userManager.CreateAsync(user, model.Password);
+                         if (result.Succeeded)
+                         {
+                             await _userManager.AddToRoleAsync(user, "Teacher");
+                             teacher.UserId = user.Id;
+                         }
+                         else
+                         {
+                              throw new Exception($"Failed to create user account: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                         }
+                    }
+
                     await _context.SaveChangesAsync();
                 }
             }, $"Error occurred while updating teacher {model.Id}");
