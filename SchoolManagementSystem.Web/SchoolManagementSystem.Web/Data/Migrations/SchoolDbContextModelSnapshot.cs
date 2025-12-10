@@ -711,7 +711,6 @@ namespace SchoolManagementSystem.Web.Data.Migrations
 
             modelBuilder.Entity("SchoolManagementSystem.Web.Models.SchoolClass", b =>
                 {
-                    b.Navigation("ScheduleEntries");
                 });
 
             modelBuilder.Entity("SchoolManagementSystem.Web.Models.Student", b =>
