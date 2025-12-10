@@ -216,6 +216,37 @@ namespace SchoolManagementSystem.Web.Data.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("SchoolManagementSystem.Web.Models.ScheduleEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RoomNumber")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SchoolClassId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SubjectId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolClassId", "SubjectId");
+
+                    b.ToTable("ScheduleEntries");
+                });
+
             modelBuilder.Entity("SchoolManagementSystem.Web.Models.Auth.Role", b =>
                 {
                     b.Property<string>("Id")
@@ -578,6 +609,17 @@ namespace SchoolManagementSystem.Web.Data.Migrations
                     b.Navigation("Subject");
                 });
 
+            modelBuilder.Entity("SchoolManagementSystem.Web.Models.ScheduleEntry", b =>
+                {
+                    b.HasOne("SchoolManagementSystem.Web.Models.ClassSubject", "ClassSubject")
+                        .WithMany("ScheduleEntries")
+                        .HasForeignKey("SchoolClassId", "SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ClassSubject");
+                });
+
             modelBuilder.Entity("SchoolManagementSystem.Web.Models.Auth.RefreshToken", b =>
                 {
                     b.HasOne("SchoolManagementSystem.Web.Models.Auth.User", "User")
@@ -669,9 +711,7 @@ namespace SchoolManagementSystem.Web.Data.Migrations
 
             modelBuilder.Entity("SchoolManagementSystem.Web.Models.SchoolClass", b =>
                 {
-                    b.Navigation("ClassSubjects");
-
-                    b.Navigation("Students");
+                    b.Navigation("ScheduleEntries");
                 });
 
             modelBuilder.Entity("SchoolManagementSystem.Web.Models.Student", b =>
