@@ -2,7 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using SchoolManagementSystem.Web.Models.ViewModels
 @using SchoolManagementSystem.Web.Services
-@inject TeacherService TeacherService
+@inject ITeacherService TeacherService
 @attribute [Authorize(Roles = "Student")]
 
 <PageTitle>Teachers</PageTitle>

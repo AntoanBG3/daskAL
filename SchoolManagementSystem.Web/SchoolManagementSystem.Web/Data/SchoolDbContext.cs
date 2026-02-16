@@ -15,7 +15,8 @@ namespace SchoolManagementSystem.Web.Data
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<Grade> Grades { get; set; }
         public DbSet<Absence> Absences { get; set; }
-        
+        public DbSet<ScheduleEntry> ScheduleEntries { get; set; }
+
         // Auth Tables
         public DbSet<LoginAttempt> LoginAttempts { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
@@ -42,6 +43,11 @@ namespace SchoolManagementSystem.Web.Data
                 .HasOne(cs => cs.Subject)
                 .WithMany(s => s.ClassSubjects)
                 .HasForeignKey(cs => cs.SubjectId);
+
+            modelBuilder.Entity<ScheduleEntry>()
+                .HasOne(se => se.ClassSubject)
+                .WithMany(cs => cs.ScheduleEntries)
+                .HasForeignKey(se => new { se.SchoolClassId, se.SubjectId });
 
             // Message Configuration
             modelBuilder.Entity<Message>()

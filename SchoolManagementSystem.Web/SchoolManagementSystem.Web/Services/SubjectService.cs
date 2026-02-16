@@ -5,7 +5,7 @@ using SchoolManagementSystem.Web.Models.ViewModels;
 
 namespace SchoolManagementSystem.Web.Services
 {
-    public class SubjectService : BaseService<SubjectService>
+    public class SubjectService : BaseService<SubjectService>, ISubjectService
     {
         private readonly SchoolDbContext _context;
 

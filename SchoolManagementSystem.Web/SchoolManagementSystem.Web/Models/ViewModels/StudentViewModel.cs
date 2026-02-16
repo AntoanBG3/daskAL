@@ -12,7 +12,6 @@ namespace SchoolManagementSystem.Web.Models.ViewModels
         [Required]
         public string LastName { get; set; } = string.Empty;
 
-        [Required]
         public string Class { get; set; } = string.Empty;
 
         [Required]

@@ -10,5 +10,7 @@ namespace SchoolManagementSystem.Web.Models
 
         public int SubjectId { get; set; }
         public Subject? Subject { get; set; }
+
+        public ICollection<ScheduleEntry> ScheduleEntries { get; set; } = new List<ScheduleEntry>();
     }
 }

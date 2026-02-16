@@ -1,6 +1,6 @@
 @page "/teachers"
 @attribute [Authorize(Roles = "Admin")]
-@inject SchoolManagementSystem.Web.Services.TeacherService TeacherService
+@inject ITeacherService TeacherService
 @inject IJSRuntime JSRuntime
 @using SchoolManagementSystem.Web.Models.ViewModels
 

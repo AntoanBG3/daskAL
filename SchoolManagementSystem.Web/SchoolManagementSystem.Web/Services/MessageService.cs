@@ -4,7 +4,7 @@ using SchoolManagementSystem.Web.Models;
 
 namespace SchoolManagementSystem.Web.Services
 {
-    public class MessageService : BaseService<MessageService>
+    public class MessageService : BaseService<MessageService>, IMessageService
     {
         private readonly SchoolDbContext _context;
 

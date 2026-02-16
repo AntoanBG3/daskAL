@@ -1,7 +1,7 @@
 @page "/grades"
-@inject SchoolManagementSystem.Web.Services.GradeService GradeService
-@inject SchoolManagementSystem.Web.Services.StudentService StudentService
-@inject SchoolManagementSystem.Web.Services.SubjectService SubjectService
+@inject IGradeService GradeService
+@inject IStudentService StudentService
+@inject ISubjectService SubjectService
 @inject NavigationManager Navigation
 @using SchoolManagementSystem.Web.Models.ViewModels
 @using Microsoft.AspNetCore.Authorization

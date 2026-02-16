@@ -47,15 +47,15 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/access-denied";
 });
 
-builder.Services.AddScoped<ClassService>();
-builder.Services.AddScoped<StudentService>();
-builder.Services.AddScoped<TeacherService>();
-builder.Services.AddScoped<SubjectService>();
-builder.Services.AddScoped<GradeService>();
-builder.Services.AddScoped<AbsenceService>();
-builder.Services.AddScoped<MessageService>();
-builder.Services.AddScoped<DataImportService>();
-// builder.Services.AddScoped<SchoolService>(); // Deprecated
+builder.Services.AddScoped<IClassService, ClassService>();
+builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<ITeacherService, TeacherService>();
+builder.Services.AddScoped<ISubjectService, SubjectService>();
+builder.Services.AddScoped<IGradeService, GradeService>();
+builder.Services.AddScoped<IAbsenceService, AbsenceService>();
+builder.Services.AddScoped<IMessageService, MessageService>();
+builder.Services.AddScoped<IDataImportService, DataImportService>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddRazorComponents()
@@ -82,7 +82,7 @@ else
     app.UseHsts();
 }
 
-// app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 
 app.UseAntiforgery();
@@ -114,12 +114,7 @@ try
 
         await DbSeeder.SeedRolesAndUsersAsync(services);
 
-        // Optional: Seed Legacy Data
-        /* 
-        var service = services.GetRequiredService<SchoolService>();
-        string jsonPath = "school_data.json"; 
-        await service.ImportFromLegacyJsonAsync(jsonPath);
-        */
+
     }
 }
 catch (Exception ex)

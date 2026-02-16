@@ -1,6 +1,6 @@
 # 🏫 daskAL
 
-**daskAL** is a modern, web-based School Management System built with **.NET 9** and **Blazor**. It streamlines school administration by providing role-based access for Administrators, Teachers, and Students to manage grades, classes, subjects, and internal communication.
+**daskAL** is a modern, web-based School Management System built with **.NET 9** and **Blazor**. It provides role-based access for Administrators, Teachers, and Students to manage grades, classes, subjects, schedules, and internal communication.
 
 ![.NET](https://img.shields.io/badge/.NET-9.0-512bd4?style=flat&logo=dotnet)
 ![Blazor](https://img.shields.io/badge/Blazor-Web-512bd4?style=flat&logo=blazor)
@@ -11,64 +11,61 @@
 
 ## ✨ Features
 
-### 🔐 Secure Role-Based Access
-*   **Administrator:** Full control over the system. Manage users, classes, subjects, and view all data.
-*   **Teacher:** Manage student grades, view assigned subjects, record absences, and communicate with students.
-*   **Student:** View personal dashboard, check grades, see assigned teachers, and access school messages.
+### 🔐 Role-Based Access
+- **Administrator** — Full system control: manage users, approve registrations, oversee all data.
+- **Teacher** — Record grades & absences, view assigned subjects, communicate with students.
+- **Student** — Personal dashboard with grades, schedule, assigned teachers, and messaging.
 
 ### 📚 Academic Management
-*   **Class & Subject Management:** Organize school classes and curriculum subjects easily.
-*   **Grade Recording:** Teachers can record and update grades (2-6 scale) for their specific subjects.
-*   **Absence Tracking:** Monitor student attendance (Excused/Unexcused).
+- **Classes & Subjects** — Organize curriculum with many-to-many class–subject assignments.
+- **Grade Recording** — Teachers record and update grades (2–6 scale) per subject.
+- **Absence Tracking** — Monitor attendance with excused/unexcused status.
+- **Schedule Management** — Weekly timetable with conflict detection (teacher, room, class).
 
 ### 💬 Communication
-*   **Internal Messaging:** Built-in secure messaging system between teachers, students, and admins.
+- **Internal Messaging** — Secure messaging between all user roles with read/unread tracking.
 
-### 🛠 Technical Highlights
-*   **Clean Architecture:** Separation of concerns with dedicated Services and Models.
-*   **EF Core & SQLite:** Robust data persistence with easy-to-setup database.
-*   **Responsive UI:** Built with Bootstrap 5 for a consistent experience across devices.
+### � Technical Highlights
+- **Interface-Driven Services** — All business logic behind interfaces (`IClassService`, `ITeacherService`, etc.) for testability and clean DI.
+- **EF Core & SQLite** — Code-first migrations with automatic database creation on first run.
+- **ASP.NET Core Identity** — Authentication with login attempt logging and admin-approved registration.
+- **Blazor Server + WebAssembly** — Interactive UI with server-side rendering and client-side components.
+- **Unit Tested** — xUnit + Moq test suite covering service-layer operations.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-*   [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) installed on your machine.
+- [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 
 ### Installation
 
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/AntoanBG3/daskAL.git
-    cd daskAL
-    ```
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/AntoanBG3/daskAL.git
+   cd daskAL
+   ```
 
-2.  **Navigate to the Web Project**
-    ```bash
-    cd SchoolManagementSystem.Web/SchoolManagementSystem.Web
-    ```
+2. **Run the application**
+   ```bash
+   cd SchoolManagementSystem.Web/SchoolManagementSystem.Web
+   dotnet run
+   ```
+   The database is automatically created and seeded on first run.
 
-3.  **Run the Application**
-    ```bash
-    dotnet run
-    ```
-    *The database will be automatically created and seeded with default data upon first run.*
-
-4.  **Access the App**
-    Open your browser and navigate to `http://localhost:5000` (or the URL shown in your console).
+3. **Open in browser**
+   Navigate to the URL shown in your console (typically `http://localhost:5000`).
 
 ---
 
-## 🔑 Default Login Credentials
-
-For testing purposes, the system is pre-seeded with the following accounts:
+## 🔑 Default Credentials
 
 | Role | Email | Password |
 | :--- | :--- | :--- |
 | **Admin** | `admin@school.com` | `Admin123!` |
 
-> **Note:** Please change these credentials or delete these accounts in a production environment.
+> **Note:** Change these credentials before deploying to production. New teacher and student accounts require admin approval after registration.
 
 ---
 
@@ -76,16 +73,29 @@ For testing purposes, the system is pre-seeded with the following accounts:
 
 ```text
 daskAL/
-├── SchoolManagementSystem.ConsoleApp/    # Legacy Console Application
-├── SchoolManagementSystem.Web/           # Main Web Solution
-│   ├── SchoolManagementSystem.Web/       # Blazor Server Web App
-│   │   ├── Components/                   # Razor Components (Pages, Layouts)
-│   │   ├── Data/                         # EF Core Context & Migrations
-│   │   ├── Models/                       # Domain Entities
-│   │   ├── Services/                     # Business Logic & Data Access
-│   │   └── wwwroot/                      # Static Assets (CSS, JS)
-│   └── SchoolManagementSystem.Web.Client/# Blazor Client (WASM) Project
+├── SchoolManagementSystem.Web/
+│   ├── SchoolManagementSystem.Web/           # Blazor Server App
+│   │   ├── Components/                       # Razor Pages & Layouts
+│   │   ├── Controllers/                      # API Controllers (Schedule)
+│   │   ├── Data/                             # EF Core Context, Migrations & Seeder
+│   │   ├── DTOs/                             # Data Transfer Objects
+│   │   ├── Models/                           # Domain Entities & ViewModels
+│   │   ├── Services/                         # Interfaces & Implementations
+│   │   └── wwwroot/                          # Static Assets (CSS, JS)
+│   ├── SchoolManagementSystem.Web.Client/    # Blazor WASM Client
+│   └── SchoolManagementSystem.Tests/         # xUnit Test Suite
+└── SchoolManagementSystem.ConsoleApp/        # Legacy Console App
 ```
+
+---
+
+## 🧪 Running Tests
+
+```bash
+dotnet test SchoolManagementSystem.Web/SchoolManagementSystem.Web.sln
+```
+
+---
 
 ## 📜 License
 

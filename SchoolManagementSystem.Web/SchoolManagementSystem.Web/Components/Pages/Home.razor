@@ -5,10 +5,10 @@
 @using SchoolManagementSystem.Web.Data
 @using Microsoft.EntityFrameworkCore
 @attribute [Authorize]
-@inject StudentService StudentService
-@inject TeacherService TeacherService
-@inject ClassService ClassService
-@inject AbsenceService AbsenceService
+@inject IStudentService StudentService
+@inject ITeacherService TeacherService
+@inject IClassService ClassService
+@inject IAbsenceService AbsenceService
 @inject SchoolDbContext DbContext
 @inject IJSRuntime JSRuntime
 

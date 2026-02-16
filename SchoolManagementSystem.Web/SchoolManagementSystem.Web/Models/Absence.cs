@@ -13,7 +13,7 @@ namespace SchoolManagementSystem.Web.Models
         public int? SubjectId { get; set; }
         public Subject? Subject { get; set; }
 
-        public DateTime Date { get; set; } = DateTime.Now;
+        public DateTime Date { get; set; } = DateTime.UtcNow;
 
         public bool IsExcused { get; set; } = false;
         

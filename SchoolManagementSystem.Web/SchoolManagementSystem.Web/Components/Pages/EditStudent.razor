@@ -1,7 +1,7 @@
 @page "/students/edit/{Id:int}"
 @attribute [Authorize(Roles = "Admin,Teacher")]
-@inject SchoolManagementSystem.Web.Services.StudentService StudentService
-@inject SchoolManagementSystem.Web.Services.ClassService ClassService
+@inject IStudentService StudentService
+@inject IClassService ClassService
 @inject NavigationManager NavigationManager
 @using SchoolManagementSystem.Web.Models.ViewModels
 

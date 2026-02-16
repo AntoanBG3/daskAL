@@ -1,0 +1,98 @@
+@using SchoolManagementSystem.Web.DTOs
+@using System.Globalization
+
+<div class="timetable-container">
+    <div class="timetable-grid">
+        <!-- Header Row -->
+        <div class="time-header">Time</div>
+        @foreach (var day in DaysOfWeek)
+        {
+            <div class="day-header">@day</div>
+        }
+
+        <!-- Time Slots -->
+        @foreach (var timeSlot in TimeSlots)
+        {
+            <div class="time-label">@timeSlot.ToString(@"hh\:mm")</div>
+            @foreach (var day in DaysOfWeek)
+            {
+                var entry = GetEntry(day, timeSlot);
+                <div class="time-cell @(entry != null ? "has-class" : "")">
+                    @if (entry != null)
+                    {
+                        <div class="class-block">
+                            <div class="subject">@entry.SubjectName</div>
+                            <div class="room">@entry.RoomNumber</div>
+                            <div class="teacher">@entry.TeacherName</div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .timetable-container {
+        overflow-x: auto;
+    }
+    .timetable-grid {
+        display: grid;
+        grid-template-columns: 80px repeat(5, 1fr); /* Time column + 5 Days */
+        gap: 1px;
+        background-color: #ddd;
+        border: 1px solid #ddd;
+    }
+    .time-header, .day-header {
+        background-color: #f8f9fa;
+        padding: 10px;
+        font-weight: bold;
+        text-align: center;
+    }
+    .time-label {
+        background-color: #f8f9fa;
+        padding: 10px;
+        text-align: right;
+        font-weight: bold;
+        border-right: 1px solid #ddd;
+    }
+    .time-cell {
+        background-color: white;
+        padding: 5px;
+        min-height: 50px;
+        border: 1px solid #eee;
+    }
+    .class-block {
+        background-color: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 4px;
+        border-radius: 4px;
+        font-size: 0.9em;
+    }
+    .subject { font-weight: bold; }
+    .room, .teacher { font-size: 0.8em; color: #666; }
+</style>
+
+@code {
+    [Parameter]
+    public List<ScheduleEntryDTO> Schedule { get; set; } = new List<ScheduleEntryDTO>();
+
+    private List<string> DaysOfWeek = new() { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+
+    // Generate time slots from 8:00 to 16:00
+    private List<TimeSpan> TimeSlots = Enumerable.Range(8, 9)
+        .Select(h => new TimeSpan(h, 0, 0))
+        .ToList();
+
+    private ScheduleEntryDTO? GetEntry(string dayName, TimeSpan time)
+    {
+        if (Schedule == null) return null;
+
+        if (!Enum.TryParse<DayOfWeek>(dayName, out var dayOfWeek)) return null;
+
+        return Schedule.FirstOrDefault(s =>
+            s.DayOfWeek == dayOfWeek &&
+            s.StartTime <= time &&
+            s.EndTime > time);
+    }
+}

@@ -38,19 +38,5 @@ namespace SchoolManagementSystem.Web.Services
                        // Previous behavior in Get was "return null/empty".
             }
         }
-
-        // Overload to allow suppressing throw if needed, though mostly we saw throw in modifications
-        protected async Task ExecuteSafeAsync(Func<Task> action, string errorMessage, bool rethrow)
-        {
-            try
-            {
-                await action();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "{ErrorMessage}", errorMessage);
-                if (rethrow) throw;
-            }
-        }
     }
 }

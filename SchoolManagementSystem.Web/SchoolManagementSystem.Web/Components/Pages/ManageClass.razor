@@ -2,8 +2,8 @@
 @page "/classes/edit/{Id:int}"
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
-@inject SchoolManagementSystem.Web.Services.ClassService ClassService
-@inject SchoolManagementSystem.Web.Services.SubjectService SubjectService
+@inject IClassService ClassService
+@inject ISubjectService SubjectService
 @inject NavigationManager Navigation
 @using SchoolManagementSystem.Web.Models.ViewModels
 
