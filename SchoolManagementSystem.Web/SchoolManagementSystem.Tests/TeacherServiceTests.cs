@@ -2,9 +2,11 @@ using Xunit;
 using Moq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
 using SchoolManagementSystem.Web.Services;
 using SchoolManagementSystem.Web.Data;
 using SchoolManagementSystem.Web.Models.ViewModels;
+using SchoolManagementSystem.Web.Models.Auth;
 using System.Threading.Tasks;
 using System.Linq;
 using SchoolManagementSystem.Web.Models;
@@ -17,6 +19,7 @@ namespace SchoolManagementSystem.Tests
     {
         private DbContextOptions<SchoolDbContext> _options;
         private Mock<ILogger<TeacherService>> _mockLogger;
+        private Mock<UserManager<User>> _mockUserManager;
 
         public TeacherServiceTests()
         {
@@ -25,6 +28,9 @@ namespace SchoolManagementSystem.Tests
                 .Options;
 
             _mockLogger = new Mock<ILogger<TeacherService>>();
+
+            var store = new Mock<IUserStore<User>>();
+            _mockUserManager = new Mock<UserManager<User>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
         }
 
         private SchoolDbContext CreateContext()
@@ -37,7 +43,7 @@ namespace SchoolManagementSystem.Tests
         {
             using (var context = CreateContext())
             {
-                var service = new TeacherService(context, _mockLogger.Object);
+                var service = new TeacherService(context, _mockUserManager.Object, _mockLogger.Object);
                 var model = new TeacherViewModel { FirstName = "T", LastName = "User" };
 
                 await service.AddTeacherAsync(model, "user-123");
@@ -62,7 +68,7 @@ namespace SchoolManagementSystem.Tests
 
             using (var context = CreateContext())
             {
-                var service = new TeacherService(context, _mockLogger.Object);
+                var service = new TeacherService(context, _mockUserManager.Object, _mockLogger.Object);
                 var result = await service.GetTeacherByIdAsync(1);
 
                 Assert.NotNull(result);
@@ -81,7 +87,7 @@ namespace SchoolManagementSystem.Tests
 
             using (var context = CreateContext())
             {
-                var service = new TeacherService(context, _mockLogger.Object);
+                var service = new TeacherService(context, _mockUserManager.Object, _mockLogger.Object);
                 var model = new TeacherViewModel { Id = 2, FirstName = "New", LastName = "Name" };
                 await service.UpdateTeacherAsync(model);
             }
@@ -104,7 +110,7 @@ namespace SchoolManagementSystem.Tests
 
             using (var context = CreateContext())
             {
-                var service = new TeacherService(context, _mockLogger.Object);
+                var service = new TeacherService(context, _mockUserManager.Object, _mockLogger.Object);
                 await service.DeleteTeacherAsync(3);
             }
 
