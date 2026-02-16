@@ -70,5 +70,26 @@ namespace SchoolManagementSystem.Tests
                 Assert.Contains(classSubjects, cs => cs.SubjectId == 102);
             }
         }
+
+        [Fact]
+        public async Task DeleteClassAsync_DeletesClass()
+        {
+            using (var context = CreateContext())
+            {
+                context.SchoolClasses.Add(new SchoolClass { Id = 5, Name = "12B" });
+                await context.SaveChangesAsync();
+            }
+
+            using (var context = CreateContext())
+            {
+                var service = new ClassService(context, _mockLogger.Object);
+                await service.DeleteClassAsync(5);
+            }
+
+            using (var context = CreateContext())
+            {
+                Assert.Empty(context.SchoolClasses);
+            }
+        }
     }
 }

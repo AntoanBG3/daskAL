@@ -2,9 +2,9 @@
 @using SchoolManagementSystem.Web.Models.ViewModels
 @using Microsoft.AspNetCore.Authorization
 @using SchoolManagementSystem.Web.Services
-@inject AbsenceService AbsenceService
-@inject StudentService StudentService
-@inject SubjectService SubjectService
+@inject IAbsenceService AbsenceService
+@inject IStudentService StudentService
+@inject ISubjectService SubjectService
 @attribute [Authorize(Roles = "Teacher,Admin")]
 
 <PageTitle>Absences</PageTitle>

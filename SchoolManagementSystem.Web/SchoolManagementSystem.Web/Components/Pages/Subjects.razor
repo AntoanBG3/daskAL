@@ -1,6 +1,6 @@
 @page "/subjects"
 @attribute [Authorize(Roles = "Admin,Teacher")]
-@inject SchoolManagementSystem.Web.Services.SubjectService SubjectService
+@inject ISubjectService SubjectService
 @inject IJSRuntime JSRuntime
 @using SchoolManagementSystem.Web.Models.ViewModels
 

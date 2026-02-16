@@ -4,7 +4,7 @@ using SchoolManagementSystem.Web.Models;
 
 namespace SchoolManagementSystem.Web.Services
 {
-    public class AbsenceService : BaseService<AbsenceService>
+    public class AbsenceService : BaseService<AbsenceService>, IAbsenceService
     {
         private readonly SchoolDbContext _context;
 
@@ -22,7 +22,7 @@ namespace SchoolManagementSystem.Web.Services
                     StudentId = studentId,
                     SubjectId = subjectId,
                     IsExcused = isExcused,
-                    Date = DateTime.Now
+                    Date = DateTime.UtcNow
                 };
                 _context.Absences.Add(absence);
                 await _context.SaveChangesAsync();

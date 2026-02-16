@@ -5,7 +5,7 @@ using SchoolManagementSystem.Web.Models.ViewModels;
 
 namespace SchoolManagementSystem.Web.Services
 {
-    public class ClassService : BaseService<ClassService>
+    public class ClassService : BaseService<ClassService>, IClassService
     {
         private readonly SchoolDbContext _context;
 
@@ -97,6 +97,19 @@ namespace SchoolManagementSystem.Web.Services
                     await _context.SaveChangesAsync();
                 }
             }, $"Error occurred while updating subjects for class {classId}");
+        }
+
+        public async Task DeleteClassAsync(int id)
+        {
+            await ExecuteSafeAsync(async () =>
+            {
+                var schoolClass = await _context.SchoolClasses.FindAsync(id);
+                if (schoolClass != null)
+                {
+                    _context.SchoolClasses.Remove(schoolClass);
+                    await _context.SaveChangesAsync();
+                }
+            }, $"Error occurred while deleting class {id}");
         }
     }
 }

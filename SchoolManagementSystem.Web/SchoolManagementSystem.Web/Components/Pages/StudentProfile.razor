@@ -6,7 +6,7 @@
 @using SchoolManagementSystem.Web.Services
 @using SchoolManagementSystem.Web.Client.Components
 @inject AuthenticationStateProvider AuthStateProvider
-@inject StudentService StudentService
+@inject IStudentService StudentService
 @inject IScheduleService ScheduleService
 @attribute [Authorize(Roles = "Student")]
 

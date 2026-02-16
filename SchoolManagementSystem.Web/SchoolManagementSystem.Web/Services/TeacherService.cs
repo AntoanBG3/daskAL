@@ -5,7 +5,7 @@ using SchoolManagementSystem.Web.Models.ViewModels;
 
 namespace SchoolManagementSystem.Web.Services
 {
-    public class TeacherService : BaseService<TeacherService>
+    public class TeacherService : BaseService<TeacherService>, ITeacherService
     {
         private readonly SchoolDbContext _context;
         private readonly Microsoft.AspNetCore.Identity.UserManager<SchoolManagementSystem.Web.Models.Auth.User> _userManager;

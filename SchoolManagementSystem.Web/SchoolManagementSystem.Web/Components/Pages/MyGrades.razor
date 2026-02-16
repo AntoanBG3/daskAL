@@ -4,9 +4,9 @@
 @using SchoolManagementSystem.Web.Models.ViewModels
 @using SchoolManagementSystem.Web.Services
 @inject AuthenticationStateProvider AuthStateProvider
-@inject StudentService StudentService
-@inject GradeService GradeService
-@inject AbsenceService AbsenceService
+@inject IStudentService StudentService
+@inject IGradeService GradeService
+@inject IAbsenceService AbsenceService
 @attribute [Authorize(Roles = "Student")]
 
 <PageTitle>My Grades</PageTitle>
