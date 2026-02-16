@@ -11,15 +11,20 @@
 
 <PageTitle>Admin Approvals - daskAL</PageTitle>
 
-<div class="container mt-4">
-    <h2 class="mb-4">Approvals Dashboard</h2>
+<div class="page-header">
+    <h2><i class="bi bi-shield-check"></i> Approvals Dashboard</h2>
+    <p class="page-subtitle">Review and manage pending registrations and profile picture changes.</p>
+</div>
 
-    <div class="row">
-        <div class="col-md-12 mb-5">
-            <div class="card shadow-sm">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="bi bi-person-plus"></i> Pending Account Registrations</h5>
+<div class="row">
+    <div class="col-md-12 mb-5">
+        <div class="card shadow-sm border-0" style="border-radius: var(--border-radius-lg);">
+            <div class="card-header-modern">
+                <div class="header-icon" style="background: #FEF3C7; color: #D97706;">
+                    <i class="bi bi-person-plus"></i>
                 </div>
+                <h5>Pending Account Registrations</h5>
+            </div>
                 <div class="card-body">
                     @if (Model.PendingUsers.Any())
                     {
@@ -65,9 +70,12 @@
         </div>
 
         <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="bi bi-image"></i> Pending Profile Pictures</h5>
+            <div class="card shadow-sm border-0" style="border-radius: var(--border-radius-lg);">
+                <div class="card-header-modern">
+                    <div class="header-icon" style="background: #DBEAFE; color: #2563EB;">
+                        <i class="bi bi-image"></i>
+                    </div>
+                    <h5>Pending Profile Pictures</h5>
                 </div>
                 <div class="card-body">
                     @if (Model.PendingPictures.Any())
@@ -124,7 +132,6 @@
                     }
                 </div>
             </div>
-        </div>
     </div>
 </div>
 

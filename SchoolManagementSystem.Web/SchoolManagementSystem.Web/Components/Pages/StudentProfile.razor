@@ -12,10 +12,12 @@
 
 <PageTitle>My Profile</PageTitle>
 
-<div class="container mt-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h3 class="mb-0"><i class="bi bi-person-circle me-2"></i>My Profile</h3>
+    <div class="card shadow-sm border-0" style="border-radius: var(--border-radius-lg);">
+        <div class="card-header-modern">
+            <div class="header-icon" style="background: #EEF2FF; color: #4F46E5;">
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <h4>My Profile</h4>
         </div>
         <div class="card-body">
             @if (CurrentStudent == null)
@@ -83,7 +85,6 @@
             }
         </div>
     </div>
-</div>
 
 @code {
     private Student? CurrentStudent;

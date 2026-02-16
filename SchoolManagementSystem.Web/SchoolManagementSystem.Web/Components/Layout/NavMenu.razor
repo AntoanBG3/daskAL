@@ -49,6 +49,12 @@
                             <span>All Grades</span>
                         </NavLink>
                     </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="absences">
+                            <i class="bi bi-calendar-x"></i>
+                            <span>Absences</span>
+                        </NavLink>
+                    </li>
                 </AuthorizeView>
 
                 <AuthorizeView Roles="Teacher" Context="teacherContext">
@@ -59,6 +65,12 @@
                         <NavLink class="nav-link" href="grades">
                             <i class="bi bi-clipboard-data"></i> 
                             <span>Manage Grades</span>
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="absences">
+                            <i class="bi bi-calendar-x"></i>
+                            <span>Absences</span>
                         </NavLink>
                     </li>
                 </AuthorizeView>
@@ -98,6 +110,16 @@
                         </NavLink>
                     </li>
                 </AuthorizeView>
+
+                <li class="nav-item mt-4">
+                    <div class="sidebar-heading">Account</div>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="settings">
+                        <i class="bi bi-gear"></i>
+                        <span>Settings</span>
+                    </NavLink>
+                </li>
             </Authorized>
         </AuthorizeView>
     </ul>
