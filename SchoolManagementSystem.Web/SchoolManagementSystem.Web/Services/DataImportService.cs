@@ -4,6 +4,7 @@ using SchoolManagementSystem.Web.DTOs;
 using SchoolManagementSystem.Web.Models;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace SchoolManagementSystem.Web.Services
 {
@@ -38,14 +39,28 @@ namespace SchoolManagementSystem.Web.Services
 
         public async Task ImportFromJsonAsync(string jsonContent)
         {
+            var schoolData = DeserializeSchoolData(jsonContent);
+
+            if (schoolData is null)
+                return;
+
+            await ExecuteImportStepsInTransactionAsync(schoolData);
+        }
+
+        // ── Private import steps ───────────────────────────────────────────
+
+        private LegacySchoolDatabase? DeserializeSchoolData(string jsonContent)
+        {
             var schoolData = JsonSerializer.Deserialize<LegacySchoolDatabase>(jsonContent);
 
             if (schoolData is null)
-            {
                 _logger.LogWarning("Deserialized school data was null.");
-                return;
-            }
 
+            return schoolData;
+        }
+
+        private async Task ExecuteImportStepsInTransactionAsync(LegacySchoolDatabase schoolData)
+        {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
@@ -54,7 +69,6 @@ namespace SchoolManagementSystem.Web.Services
                 await ImportSubjectsAsync(schoolData);
                 await ImportClassesAsync(schoolData);
                 await ImportStudentsAsync(schoolData);
-
                 await transaction.CommitAsync();
             }
             catch (Exception ex)
@@ -65,21 +79,18 @@ namespace SchoolManagementSystem.Web.Services
             }
         }
 
-        // ── Private import steps ───────────────────────────────────────────
-
         private async Task ImportTeachersAsync(LegacySchoolDatabase schoolData)
         {
             if (await _context.Teachers.AnyAsync() || schoolData.Teachers is null or { Count: 0 })
                 return;
 
-            foreach (var t in schoolData.Teachers)
+            var teachers = schoolData.Teachers.Select(t => new Teacher
             {
-                _context.Teachers.Add(new Teacher
-                {
-                    FirstName = t.FirstName,
-                    LastName = t.LastName
-                });
-            }
+                FirstName = t.FirstName,
+                LastName = t.LastName
+            });
+
+            _context.Teachers.AddRange(teachers);
 
             await _context.SaveChangesAsync();
             _logger.LogInformation("Imported {Count} teachers.", schoolData.Teachers.Count);
@@ -91,23 +102,16 @@ namespace SchoolManagementSystem.Web.Services
                 return;
 
             var teachers = await _context.Teachers.ToListAsync();
+            var subjectTeacherIdByName = ResolveSubjectTeacherIds(schoolData.Teachers, teachers);
 
-            foreach (var s in schoolData.Subjects)
+            var subjects = schoolData.Subjects.Select(s => new Subject
             {
-                var teacher = teachers.FirstOrDefault(t =>
-                    schoolData.Teachers != null &&
-                    schoolData.Teachers.Any(lt =>
-                        lt.FirstName == t.FirstName &&
-                        lt.LastName == t.LastName &&
-                        lt.TeachingSubjects.Contains(s.Name)));
+                Name = s.Name,
+                Description = s.Description,
+                TeacherId = subjectTeacherIdByName.TryGetValue(s.Name, out var teacherId) ? teacherId : null
+            });
 
-                _context.Subjects.Add(new Subject
-                {
-                    Name = s.Name,
-                    Description = s.Description,
-                    TeacherId = teacher?.Id
-                });
-            }
+            _context.Subjects.AddRange(subjects);
 
             await _context.SaveChangesAsync();
             _logger.LogInformation("Imported {Count} subjects.", schoolData.Subjects.Count);
@@ -124,10 +128,7 @@ namespace SchoolManagementSystem.Web.Services
                 .Distinct()
                 .ToList();
 
-            foreach (var className in legacyClasses)
-            {
-                _context.SchoolClasses.Add(new SchoolClass { Name = className });
-            }
+            _context.SchoolClasses.AddRange(legacyClasses.Select(className => new SchoolClass { Name = className }));
 
             await _context.SaveChangesAsync();
             _logger.LogInformation("Imported {Count} classes.", legacyClasses.Count);
@@ -139,43 +140,98 @@ namespace SchoolManagementSystem.Web.Services
                 return;
 
             var classes = await _context.SchoolClasses.ToListAsync();
-            var subjects = await _context.Subjects.ToListAsync(); // Queried once, outside the loop
+            var subjects = await _context.Subjects.ToListAsync();
+            var classIdsByName = BuildIdLookup(classes, c => c.Name, c => c.Id);
+            var subjectIdsByName = BuildIdLookup(subjects, s => s.Name, s => s.Id);
 
             foreach (var s in schoolData.Students)
             {
-                var schoolClass = classes.FirstOrDefault(c => c.Name == s.Class);
-
                 var newStudent = new Student
                 {
                     FirstName = s.FirstName,
                     LastName = s.LastName,
-                    SchoolClassId = schoolClass?.Id,
+                    SchoolClassId = classIdsByName.TryGetValue(s.Class, out var classId) ? classId : null,
                     DateOfBirth = s.DateOfBirth
                 };
 
-                if (s.SubjectGrades != null)
-                {
-                    foreach (var subjectName in s.SubjectGrades.Keys)
-                    {
-                        var subjectEntity = subjects.FirstOrDefault(sub => sub.Name == subjectName);
-
-                        foreach (var val in s.SubjectGrades[subjectName])
-                        {
-                            newStudent.Grades.Add(new Grade
-                            {
-                                SubjectName = subjectName,
-                                SubjectId = subjectEntity?.Id,
-                                Value = val
-                            });
-                        }
-                    }
-                }
+                AddStudentGrades(newStudent, s.SubjectGrades, subjectIdsByName);
 
                 _context.Students.Add(newStudent);
             }
 
             await _context.SaveChangesAsync();
             _logger.LogInformation("Imported {Count} students.", schoolData.Students.Count);
+        }
+
+        private static Dictionary<string, int?> ResolveSubjectTeacherIds(
+            ICollection<LegacyTeacher>? legacyTeachers,
+            IEnumerable<Teacher> teachers)
+        {
+            var teacherIdByName = teachers
+                .GroupBy(t => (t.FirstName, t.LastName))
+                .ToDictionary(g => g.Key, g => g.First().Id);
+
+            var subjectTeacherIdByName = new Dictionary<string, int?>(StringComparer.Ordinal);
+            if (legacyTeachers is null)
+                return subjectTeacherIdByName;
+
+            foreach (var legacyTeacher in legacyTeachers)
+            {
+                if (!teacherIdByName.TryGetValue((legacyTeacher.FirstName, legacyTeacher.LastName), out var teacherId))
+                    continue;
+
+                foreach (var subjectName in legacyTeacher.TeachingSubjects)
+                {
+                    if (!subjectTeacherIdByName.ContainsKey(subjectName))
+                        subjectTeacherIdByName[subjectName] = teacherId;
+                }
+            }
+
+            return subjectTeacherIdByName;
+        }
+
+        private static Dictionary<string, int> BuildIdLookup<TEntity>(
+            IEnumerable<TEntity> entities,
+            Func<TEntity, string> nameSelector,
+            Func<TEntity, int> idSelector)
+        {
+            var result = new Dictionary<string, int>(StringComparer.Ordinal);
+
+            foreach (var entity in entities)
+            {
+                var name = nameSelector(entity);
+                if (!string.IsNullOrWhiteSpace(name) && !result.ContainsKey(name))
+                    result[name] = idSelector(entity);
+            }
+
+            return result;
+        }
+
+        private static void AddStudentGrades(
+            Student student,
+            Dictionary<string, List<int>>? subjectGrades,
+            IReadOnlyDictionary<string, int> subjectIdsByName)
+        {
+            if (subjectGrades is null)
+                return;
+
+            foreach (var subjectEntry in subjectGrades)
+            {
+                var subjectName = subjectEntry.Key;
+                var subjectId = subjectIdsByName.TryGetValue(subjectName, out var mappedSubjectId)
+                    ? mappedSubjectId
+                    : (int?)null;
+
+                foreach (var gradeValue in subjectEntry.Value)
+                {
+                    student.Grades.Add(new Grade
+                    {
+                        SubjectName = subjectName,
+                        SubjectId = subjectId,
+                        Value = gradeValue
+                    });
+                }
+            }
         }
     }
 }
