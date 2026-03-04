@@ -8,14 +8,23 @@
 
 <PageTitle>Search Results - daskAL</PageTitle>
 
-<div class="container-fluid">
-    <div class="mb-4">
-        <h1 class="display-6 fw-bold">Search Results</h1>
-        <p class="text-muted">
-            Showing results for <span class="fw-bold text-dark">"@Q"</span>
-            @if (!string.IsNullOrEmpty(Type) && Type != "All")
+<div class="container-fluid search-page">
+    <div class="page-header mb-4">
+        <h1><i class="bi bi-search"></i>Search Results</h1>
+        <p class="page-subtitle">
+            @if (HasQuery)
             {
-                <span>in <span class="fw-bold text-dark">@Type</span></span>
+                <span>
+                    Showing results for <span class="fw-semibold text-dark">"@Q"</span>
+                    @if (!string.IsNullOrEmpty(Type) && Type != "All")
+                    {
+                        <span>in <span class="fw-semibold text-dark">@Type</span></span>
+                    }
+                </span>
+            }
+            else
+            {
+                <span>Use the top search bar to find students, teachers, and classes.</span>
             }
         </p>
     </div>
@@ -28,29 +37,39 @@
             </div>
         </div>
     }
+    else if (!HasQuery)
+    {
+        <div class="card-premium empty-state search-empty-state">
+            <i class="bi bi-search"></i>
+            <h5>Start with a search term</h5>
+            <p>Try a student's name, teacher name, or class code like 10A.</p>
+            <a href="/" class="btn btn-outline-primary mt-2">Back to Dashboard</a>
+        </div>
+    }
     else if (!HasResults)
     {
-        <div class="text-center py-5">
-            <div class="fs-1 text-muted mb-3">
-                <i class="bi bi-search"></i>
-            </div>
-            <h4 class="fw-bold">No results found</h4>
-            <p class="text-muted">We couldn't find anything matching your search. Try different keywords.</p>
-            <a href="" class="btn btn-outline-primary mt-2">Back to Dashboard</a>
+        <div class="card-premium empty-state search-empty-state">
+            <i class="bi bi-search"></i>
+            <h5>No results found</h5>
+            <p>We couldn't find anything matching your search. Try different keywords.</p>
+            <a href="/" class="btn btn-outline-primary mt-2">Back to Dashboard</a>
         </div>
     }
     else
     {
-        <div class="row g-4">
+        <div class="row g-4 search-results-grid">
             @if (Students.Any())
             {
                 <div class="col-12">
-                    <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Students</h5>
+                    <div class="search-section-title">
+                        <h5><i class="bi bi-people"></i>Students</h5>
+                        <span class="badge bg-light text-dark">@Students.Count</span>
+                    </div>
                 </div>
                 @foreach (var s in Students)
                 {
                     <div class="col-md-6 col-lg-4 col-xl-3">
-                        <div class="card-premium h-100">
+                        <div class="card-premium search-result-card h-100">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="card-icon bg-light text-primary me-3" style="width: 40px; height: 40px; font-size: 1.2rem;">
                                     <i class="bi bi-person-circle"></i>
@@ -71,12 +90,15 @@
             @if (Teachers.Any())
             {
                 <div class="col-12 mt-4">
-                    <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Teachers</h5>
+                    <div class="search-section-title">
+                        <h5><i class="bi bi-person-badge"></i>Teachers</h5>
+                        <span class="badge bg-light text-dark">@Teachers.Count</span>
+                    </div>
                 </div>
                 @foreach (var t in Teachers)
                 {
                     <div class="col-md-6 col-lg-4 col-xl-3">
-                        <div class="card-premium h-100">
+                        <div class="card-premium search-result-card h-100">
                              <div class="d-flex align-items-center mb-3">
                                 <div class="card-icon bg-light text-warning me-3" style="width: 40px; height: 40px; font-size: 1.2rem;">
                                     <i class="bi bi-person-badge-fill"></i>
@@ -97,12 +119,15 @@
             @if (Classes.Any())
             {
                 <div class="col-12 mt-4">
-                    <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Classes</h5>
+                    <div class="search-section-title">
+                        <h5><i class="bi bi-building"></i>Classes</h5>
+                        <span class="badge bg-light text-dark">@Classes.Count</span>
+                    </div>
                 </div>
                 @foreach (var c in Classes)
                 {
                     <div class="col-md-6 col-lg-4 col-xl-3">
-                        <div class="card-premium h-100">
+                        <div class="card-premium search-result-card h-100">
                              <div class="d-flex align-items-center mb-3">
                                 <div class="card-icon bg-light text-info me-3" style="width: 40px; height: 40px; font-size: 1.2rem;">
                                     <i class="bi bi-building"></i>
@@ -134,6 +159,7 @@
     private List<Teacher> Teachers = new();
     private List<SchoolClass> Classes = new();
     private bool IsLoading = true;
+    private bool HasQuery => !string.IsNullOrWhiteSpace(Q);
     private bool HasResults => Students.Any() || Teachers.Any() || Classes.Any();
 
     protected override async Task OnParametersSetAsync()
