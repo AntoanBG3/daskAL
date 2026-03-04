@@ -13,7 +13,7 @@
 
 <div class="page-header">
     <h2><i class="bi bi-shield-check"></i> Approvals Dashboard</h2>
-    <p class="page-subtitle">Review and manage pending registrations and profile picture changes.</p>
+    <p class="page-subtitle">Review and manage pending registrations.</p>
 </div>
 
 <div class="row">
@@ -68,71 +68,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-md-12">
-            <div class="card shadow-sm border-0" style="border-radius: var(--border-radius-lg);">
-                <div class="card-header-modern">
-                    <div class="header-icon" style="background: #DBEAFE; color: #2563EB;">
-                        <i class="bi bi-image"></i>
-                    </div>
-                    <h5>Pending Profile Pictures</h5>
-                </div>
-                <div class="card-body">
-                    @if (Model.PendingPictures.Any())
-                    {
-                        <div class="row">
-                            @foreach (var pic in Model.PendingPictures)
-                            {
-                                <div class="col-md-6 col-lg-4 mb-3">
-                                    <div class="card h-100">
-                                        <div class="card-body text-center">
-                                            <h6 class="card-title">@pic.FullName</h6>
-                                            <p class="card-text small text-muted">@pic.Email</p>
-
-                                            <div class="d-flex justify-content-center align-items-center mb-3">
-                                                <div class="me-3">
-                                                    <small class="d-block mb-1">Current</small>
-                                                    @if (!string.IsNullOrEmpty(pic.CurrentPictureBase64))
-                                                    {
-                                                        <img src="@pic.CurrentPictureBase64" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;" alt="Current" />
-                                                    }
-                                                    else
-                                                    {
-                                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 80px; height: 80px;">
-                                                            <i class="bi bi-person display-6"></i>
-                                                        </div>
-                                                    }
-                                                </div>
-                                                <div>
-                                                    <i class="bi bi-arrow-right fs-4 text-muted"></i>
-                                                </div>
-                                                <div class="ms-3">
-                                                    <small class="d-block mb-1">New</small>
-                                                    <img src="@pic.PendingPictureBase64" class="rounded-circle border border-3 border-info" style="width: 80px; height: 80px; object-fit: cover;" alt="Pending" />
-                                                </div>
-                                            </div>
-
-                                            <div class="d-flex justify-content-center gap-2">
-                                                <button class="btn btn-success btn-sm" @onclick="() => ApprovePicture(pic.UserId)">
-                                                    Approve
-                                                </button>
-                                                <button class="btn btn-danger btn-sm" @onclick="() => RejectPicture(pic.UserId)">
-                                                    Reject
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <p class="text-muted text-center my-3">No pending profile pictures.</p>
-                    }
-                </div>
-            </div>
-    </div>
 </div>
 
 @code {
@@ -147,56 +82,29 @@
     {
         Model = new AdminApprovalsViewModel();
 
-        // Fetch Pending Users (IsActive = false)
-        // Note: In real app, consider pagination
+        // Fetch pending users with projection to avoid loading blob columns
         var pendingUsers = await UserManager.Users
             .Where(u => !u.IsActive)
             .OrderBy(u => u.CreatedAt)
+            .Select(u => new { u.Id, u.FirstName, u.LastName, u.Email, u.CreatedAt })
             .ToListAsync();
+
+        // Batch load student DOB data to avoid N+1
+        var pendingUserIds = pendingUsers.Select(u => u.Id).ToList();
+        var studentDobMap = await DbContext.Students
+            .Where(s => s.UserId != null && pendingUserIds.Contains(s.UserId))
+            .ToDictionaryAsync(s => s.UserId!, s => s.DateOfBirth);
 
         foreach (var u in pendingUsers)
         {
-            // Get Student details for DOB
-            var student = await DbContext.Students.FirstOrDefaultAsync(s => s.UserId == u.Id);
             Model.PendingUsers.Add(new PendingUserViewModel
             {
                 UserId = u.Id,
                 FullName = $"{u.FirstName} {u.LastName}",
                 Email = u.Email,
                 RegistrationDate = u.CreatedAt,
-                DateOfBirth = student?.DateOfBirth,
-                Role = "Student" // Assumed for now as only students self-register
-            });
-        }
-
-        // Fetch Pending Pictures
-        var pendingPics = await UserManager.Users
-            .Where(u => u.PendingProfilePicture != null)
-            .ToListAsync();
-
-        foreach (var u in pendingPics)
-        {
-            string currentBase64 = "";
-            if (u.ProfilePicture != null)
-            {
-                var mime = u.ProfilePictureContentType ?? "image/jpeg";
-                currentBase64 = $"data:{mime};base64,{Convert.ToBase64String(u.ProfilePicture)}";
-            }
-
-            string pendingBase64 = "";
-            if (u.PendingProfilePicture != null)
-            {
-                var mime = u.PendingProfilePictureContentType ?? "image/jpeg";
-                pendingBase64 = $"data:{mime};base64,{Convert.ToBase64String(u.PendingProfilePicture)}";
-            }
-
-            Model.PendingPictures.Add(new PendingPictureViewModel
-            {
-                UserId = u.Id,
-                FullName = $"{u.FirstName} {u.LastName}",
-                Email = u.Email,
-                CurrentPictureBase64 = currentBase64,
-                PendingPictureBase64 = pendingBase64
+                DateOfBirth = studentDobMap.GetValueOrDefault(u.Id),
+                Role = "Student"
             });
         }
     }
@@ -210,18 +118,6 @@
     private async Task RejectUser(string userId)
     {
         await AuthService.RejectUserAsync(userId);
-        await LoadData();
-    }
-
-    private async Task ApprovePicture(string userId)
-    {
-        await AuthService.ApproveProfilePictureAsync(userId);
-        await LoadData();
-    }
-
-    private async Task RejectPicture(string userId)
-    {
-        await AuthService.RejectProfilePictureAsync(userId);
         await LoadData();
     }
 }

@@ -22,7 +22,16 @@ namespace SchoolManagementSystem.Web.Models.ViewModels
 
         public string FullName => $"{FirstName} {LastName}";
         
-        public int Age => DateTime.Today.Year - DateOfBirth.Year - (DateTime.Today.DayOfYear < DateOfBirth.DayOfYear ? 1 : 0);
+        public int Age
+        {
+            get
+            {
+                var today = DateTime.Today;
+                var age = today.Year - DateOfBirth.Year;
+                if (DateOfBirth.Date > today.AddYears(-age)) age--;
+                return age;
+            }
+        }
         
         // Flattened grades for display potentially, or kep as list of GradeViewModel
         public double AverageGrade { get; set; }

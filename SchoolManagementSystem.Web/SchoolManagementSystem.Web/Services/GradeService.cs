@@ -22,16 +22,8 @@ namespace SchoolManagementSystem.Web.Services
                 {
                     StudentId = model.StudentId,
                     SubjectId = model.SubjectId,
-                    SubjectName = model.SubjectName, // Keep name for display if needed, or fetch from DB
                     Value = model.Value
                 };
-                
-                // If SubjectId is provided but Name is empty, fetch name
-                if (model.SubjectId.HasValue && string.IsNullOrEmpty(grade.SubjectName))
-                {
-                    var subject = await _context.Subjects.FindAsync(model.SubjectId);
-                    if (subject != null) grade.SubjectName = subject.Name;
-                }
 
                 _context.Grades.Add(grade);
                 await _context.SaveChangesAsync();
@@ -52,10 +44,36 @@ namespace SchoolManagementSystem.Web.Services
                     Id = g.Id,
                     StudentId = g.StudentId,
                     SubjectId = g.SubjectId,
-                    SubjectName = g.Subject != null ? g.Subject.Name : g.SubjectName, // Prefer relation
+                    SubjectName = g.Subject?.Name ?? "Unknown",
                     Value = g.Value
                 }).ToList();
             }, $"Error occurred while retrieving grades for student {studentId}", new List<GradeViewModel>());
+        }
+        public async Task UpdateGradeAsync(GradeViewModel model)
+        {
+            await ExecuteSafeAsync(async () =>
+            {
+                var grade = await _context.Grades.FindAsync(model.Id);
+                if (grade != null)
+                {
+                    grade.Value = model.Value;
+                    grade.SubjectId = model.SubjectId;
+                    await _context.SaveChangesAsync();
+                }
+            }, $"Error occurred while updating grade {model.Id}");
+        }
+
+        public async Task DeleteGradeAsync(int id)
+        {
+            await ExecuteSafeAsync(async () =>
+            {
+                var grade = await _context.Grades.FindAsync(id);
+                if (grade != null)
+                {
+                    _context.Grades.Remove(grade);
+                    await _context.SaveChangesAsync();
+                }
+            }, $"Error occurred while deleting grade {id}");
         }
     }
 }

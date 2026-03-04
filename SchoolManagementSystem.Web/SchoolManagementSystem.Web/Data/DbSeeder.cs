@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using SchoolManagementSystem.Web.Models.Auth;
 using SchoolManagementSystem.Web.Models;
 
@@ -11,6 +12,7 @@ namespace SchoolManagementSystem.Web.Data
             var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
             var dbContext = serviceProvider.GetRequiredService<SchoolDbContext>();
+            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
 
             string[] roleNames = { "Admin", "Teacher", "Student" };
 
@@ -38,7 +40,8 @@ namespace SchoolManagementSystem.Web.Data
                     CreatedAt = DateTime.UtcNow,
                     IsActive = true
                 };
-                var result = await userManager.CreateAsync(newAdmin, "Admin123!");
+                var adminPassword = configuration["AdminSettings:DefaultPassword"] ?? "Admin123!";
+                var result = await userManager.CreateAsync(newAdmin, adminPassword);
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(newAdmin, "Admin");

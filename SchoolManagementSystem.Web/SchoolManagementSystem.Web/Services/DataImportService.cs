@@ -163,9 +163,8 @@ namespace SchoolManagementSystem.Web.Services
                         {
                             newStudent.Grades.Add(new Grade
                             {
-                                SubjectName = subjectName,
                                 SubjectId = subjectEntity?.Id,
-                                Value = val
+                                Value = Math.Clamp(val, 2, 6)
                             });
                         }
                     }

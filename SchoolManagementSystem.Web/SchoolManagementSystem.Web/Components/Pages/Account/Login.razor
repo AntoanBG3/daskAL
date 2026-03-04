@@ -100,7 +100,16 @@
             var (success, message) = await AuthService.LoginAsync(TargetModel);
             if (success)
             {
-                var redirectUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : Uri.UnescapeDataString(ReturnUrl);
+                var redirectUrl = "/";
+                if (!string.IsNullOrEmpty(ReturnUrl))
+                {
+                    var decoded = Uri.UnescapeDataString(ReturnUrl);
+                    // Only allow local redirects to prevent open redirect attacks
+                    if (decoded.StartsWith("/") && !decoded.StartsWith("//") && !decoded.StartsWith("/\\"))
+                    {
+                        redirectUrl = decoded;
+                    }
+                }
                 HttpContext?.Response.Redirect(redirectUrl);
             }
             else

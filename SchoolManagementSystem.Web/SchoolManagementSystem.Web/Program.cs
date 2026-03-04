@@ -56,6 +56,7 @@ builder.Services.AddScoped<IAbsenceService, AbsenceService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IDataImportService, DataImportService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddRazorComponents()
@@ -83,6 +84,7 @@ else
 }
 
 
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseAntiforgery();

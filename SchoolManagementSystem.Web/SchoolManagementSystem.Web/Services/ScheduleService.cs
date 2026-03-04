@@ -129,6 +129,19 @@ namespace SchoolManagementSystem.Web.Services
             }, $"Error retrieving schedule for class {schoolClassId}", new List<ScheduleEntry>());
         }
 
+        public async Task DeleteScheduleEntryAsync(int id)
+        {
+            await ExecuteSafeAsync(async () =>
+            {
+                var entry = await _context.ScheduleEntries.FindAsync(id);
+                if (entry != null)
+                {
+                    _context.ScheduleEntries.Remove(entry);
+                    await _context.SaveChangesAsync();
+                }
+            }, $"Error deleting schedule entry {id}");
+        }
+
         public async Task<List<ScheduleEntry>> GetScheduleForTeacherAsync(int teacherId)
         {
             return await ExecuteSafeAsync(async () =>
@@ -139,7 +152,9 @@ namespace SchoolManagementSystem.Web.Services
                         .ThenInclude(s => s.Teacher)
                     .Include(se => se.ClassSubject)
                         .ThenInclude(cs => cs.SchoolClass)
-                    .Where(se => se.ClassSubject.Subject.TeacherId == teacherId)
+                    .Where(se => se.ClassSubject != null 
+                              && se.ClassSubject.Subject != null 
+                              && se.ClassSubject.Subject.TeacherId == teacherId)
                     .OrderBy(se => se.DayOfWeek)
                     .ThenBy(se => se.StartTime)
                     .ToListAsync();

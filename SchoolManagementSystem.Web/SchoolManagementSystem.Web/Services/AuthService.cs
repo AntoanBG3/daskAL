@@ -13,17 +13,20 @@ public class AuthService : IAuthService
     private readonly SignInManager<User> _signInManager;
     private readonly ILogger<AuthService> _logger;
     private readonly SchoolDbContext _context;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AuthService(
         UserManager<User> userManager,
         SignInManager<User> signInManager,
         ILogger<AuthService> logger,
-        SchoolDbContext context)
+        SchoolDbContext context,
+        IHttpContextAccessor httpContextAccessor)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _logger = logger;
         _context = context;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<(bool Success, string Message)> LoginAsync(LoginRequest request)
@@ -47,7 +50,7 @@ public class AuthService : IAuthService
         {
             user.LastLogin = DateTime.UtcNow;
             await _userManager.UpdateAsync(user);
-            await LogAttempt(request.Email, true, request.GetHashCode().ToString()); // Simplify context usage
+            await LogAttempt(request.Email, true, null);
             return (true, "Login successful.");
         }
 
@@ -117,73 +120,18 @@ public class AuthService : IAuthService
     
     private async Task LogAttempt(string email, bool success, string? reason = null)
     {
-        // Simple logging
+        var httpContext = _httpContextAccessor.HttpContext;
         var attempt = new LoginAttempt
         {
             Email = email,
             WasSuccess = success,
             AttemptTime = DateTime.UtcNow,
-            FailureReason = reason
+            FailureReason = reason,
+            IpAddress = httpContext?.Connection.RemoteIpAddress?.ToString(),
+            UserAgent = httpContext?.Request.Headers["User-Agent"].ToString()
         };
         _context.LoginAttempts.Add(attempt);
         await _context.SaveChangesAsync();
-    }
-
-    public async Task<(bool Success, string Message)> UploadProfilePictureAsync(string userId, byte[] imageData, string contentType)
-    {
-        // Server-side file validation (basic)
-        var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/jpg" };
-        if (!allowedContentTypes.Contains(contentType.ToLower()))
-        {
-            return (false, "Invalid file type. Only JPEG and PNG are allowed.");
-        }
-
-        // Ensure image data is not empty and reasonably sized (already checked on client but double check)
-        if (imageData == null || imageData.Length == 0 || imageData.Length > 2 * 1024 * 1024)
-        {
-            return (false, "Invalid file size.");
-        }
-
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user == null) return (false, "User not found");
-
-        user.PendingProfilePicture = imageData;
-        user.PendingProfilePictureContentType = contentType;
-
-        var result = await _userManager.UpdateAsync(user);
-        if (result.Succeeded) return (true, "Profile picture uploaded successfully and awaiting approval.");
-
-        return (false, "Failed to upload profile picture.");
-    }
-
-    public async Task<(bool Success, string Message)> ApproveProfilePictureAsync(string userId)
-    {
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user == null) return (false, "User not found");
-
-        if (user.PendingProfilePicture == null) return (false, "No pending picture to approve.");
-
-        user.ProfilePicture = user.PendingProfilePicture;
-        user.ProfilePictureContentType = user.PendingProfilePictureContentType;
-        user.PendingProfilePicture = null;
-        user.PendingProfilePictureContentType = null;
-
-        var result = await _userManager.UpdateAsync(user);
-        if (result.Succeeded) return (true, "Profile picture approved.");
-        return (false, "Failed to approve picture.");
-    }
-
-    public async Task<(bool Success, string Message)> RejectProfilePictureAsync(string userId)
-    {
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user == null) return (false, "User not found");
-
-        user.PendingProfilePicture = null;
-        user.PendingProfilePictureContentType = null;
-
-        var result = await _userManager.UpdateAsync(user);
-        if (result.Succeeded) return (true, "Profile picture rejected.");
-        return (false, "Failed to reject picture.");
     }
 
     public async Task<(bool Success, string Message)> ApproveUserAsync(string userId)
@@ -202,25 +150,30 @@ public class AuthService : IAuthService
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null) return (false, "User not found");
 
-        // Delete associated Student/Teacher if needed (Cascade might handle it but let's be safe)
-        // With CascadeDelete configured in EF for User -> Student?
-        // Student has UserId but it's not a FK enforced by Identity automatically in the same way.
-        // Let's check Student definition. public string? UserId. No explicit navigation property back from Student to User in Student class except manual join usually.
-        // But DbSeeder links them.
-
-        // Let's try to find linked student
-        var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userId);
-        if (student != null)
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            _context.Students.Remove(student);
-        }
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userId);
+            if (student != null)
+            {
+                _context.Students.Remove(student);
+                await _context.SaveChangesAsync();
+            }
 
-        var result = await _userManager.DeleteAsync(user);
-        if (result.Succeeded)
-        {
-             await _context.SaveChangesAsync(); // Commit student deletion if any
-             return (true, "User rejected and deleted.");
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                await transaction.CommitAsync();
+                return (true, "User rejected and deleted.");
+            }
+
+            await transaction.RollbackAsync();
+            return (false, "Failed to delete user.");
         }
-        return (false, "Failed to delete user.");
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 }

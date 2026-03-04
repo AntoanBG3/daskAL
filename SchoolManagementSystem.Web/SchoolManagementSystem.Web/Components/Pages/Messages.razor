@@ -188,25 +188,6 @@
         if (!string.IsNullOrEmpty(ComposeTo))
         {
              SetTab("compose");
-
-             if (int.TryParse(ComposeTo, out int teacherId))
-             {
-                 var teacher = await TeacherService.GetTeacherByIdAsync(teacherId);
-                 if (teacher != null)
-                 {
-                    // Attempt to find user
-                    // TeacherViewModel doesn't have UserId, we need to fetch entity or look up
-                    var teacherEntity = await TeacherService.GetTeacherByUserIdAsync(""); // No, this finds BY userId
-
-                    // We need GetTeacherById -> Teacher -> UserId -> User -> Email
-                    // The service GetTeacherByIdAsync returns ViewModel.
-                    // Let's rely on finding by name in available recipients for now, or fetch all users?
-
-                    // Better: Loop through available recipients and match name?
-                    // Name matching is weak.
-                    // Let's just fix the dropdown to list all Teachers properly first.
-                 }
-             }
         }
         
         IsLoading = false;

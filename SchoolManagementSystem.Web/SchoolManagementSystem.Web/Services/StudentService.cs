@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using SchoolManagementSystem.Web.Data;
 using SchoolManagementSystem.Web.Models;
+using SchoolManagementSystem.Web.Models.Auth;
 using SchoolManagementSystem.Web.Models.ViewModels;
 
 namespace SchoolManagementSystem.Web.Services
@@ -8,10 +10,12 @@ namespace SchoolManagementSystem.Web.Services
     public class StudentService : BaseService<StudentService>, IStudentService
     {
         private readonly SchoolDbContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public StudentService(SchoolDbContext context, ILogger<StudentService> logger) : base(logger)
+        public StudentService(SchoolDbContext context, ILogger<StudentService> logger, UserManager<User> userManager) : base(logger)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public async Task<List<StudentViewModel>> GetAllStudentsAsync()
@@ -116,6 +120,17 @@ namespace SchoolManagementSystem.Web.Services
                 var student = await _context.Students.FindAsync(id);
                 if (student != null)
                 {
+                    // Deactivate the linked User account if it exists
+                    if (!string.IsNullOrEmpty(student.UserId))
+                    {
+                        var user = await _userManager.FindByIdAsync(student.UserId);
+                        if (user != null)
+                        {
+                            user.IsActive = false;
+                            await _userManager.UpdateAsync(user);
+                        }
+                    }
+
                     _context.Students.Remove(student);
                     await _context.SaveChangesAsync();
                 }

@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using SchoolManagementSystem.Web.Data;
 using SchoolManagementSystem.Web.Models;
+using SchoolManagementSystem.Web.Models.Auth;
 using SchoolManagementSystem.Web.Models.ViewModels;
 
 namespace SchoolManagementSystem.Web.Services
@@ -8,9 +10,9 @@ namespace SchoolManagementSystem.Web.Services
     public class TeacherService : BaseService<TeacherService>, ITeacherService
     {
         private readonly SchoolDbContext _context;
-        private readonly Microsoft.AspNetCore.Identity.UserManager<SchoolManagementSystem.Web.Models.Auth.User> _userManager;
+        private readonly UserManager<User> _userManager;
 
-        public TeacherService(SchoolDbContext context, Microsoft.AspNetCore.Identity.UserManager<SchoolManagementSystem.Web.Models.Auth.User> userManager, ILogger<TeacherService> logger) : base(logger)
+        public TeacherService(SchoolDbContext context, ILogger<TeacherService> logger, UserManager<User> userManager) : base(logger)
         {
             _context = context;
             _userManager = userManager;
