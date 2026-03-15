@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using SchoolManagementSystem.Web.Services
 @using SchoolManagementSystem.Web.Models
+@using SchoolManagementSystem.Web.Models.ViewModels
 @using SchoolManagementSystem.Web.Data
 @using Microsoft.EntityFrameworkCore
 @attribute [Authorize]
@@ -9,6 +10,9 @@
 @inject ITeacherService TeacherService
 @inject IClassService ClassService
 @inject IAbsenceService AbsenceService
+@inject IGradeService GradeService
+@inject IScheduleService ScheduleService
+@inject IMessageService MessageService
 @inject SchoolDbContext DbContext
 @inject IJSRuntime JSRuntime
 
@@ -31,7 +35,7 @@
         <AuthorizeView Roles="Admin" Context="adminContext">
             <!-- Bento Box Grid Layout -->
             <div class="admin-dashboard-grid">
-                
+
                 <!-- Quick Stats - Large Span -->
                 <div class="card-premium grid-span-2">
                     <div class="d-flex align-items-center justify-content-between mb-4">
@@ -44,34 +48,34 @@
                         <h2 class="stat-value">@TotalStudents</h2>
                         <p class="stat-label">Active Students</p>
                     </div>
-                     <div class="mt-auto pt-3 border-top border-light">
+                    <div class="mt-auto pt-3 border-top border-light">
                         <a href="students" class="btn btn-sm btn-outline w-100">Manage Students</a>
                     </div>
                 </div>
 
                 <div class="card-premium grid-span-1">
-                     <div class="card-icon" style="background: #FEF3C7; color: #D97706;">
+                    <div class="card-icon" style="background: #FEF3C7; color: #D97706;">
                         <i class="bi bi-person-badge-fill"></i>
                     </div>
                     <h2 class="stat-value">@TotalTeachers</h2>
                     <p class="stat-label">Teachers</p>
-                     <div class="mt-auto">
+                    <div class="mt-auto">
                         <a href="teachers" class="text-decoration-none small fw-bold">View List &rarr;</a>
                     </div>
                 </div>
 
                 <div class="card-premium grid-span-1">
-                     <div class="card-icon" style="background: #DBEAFE; color: #2563EB;">
+                    <div class="card-icon" style="background: #DBEAFE; color: #2563EB;">
                         <i class="bi bi-building"></i>
                     </div>
                     <h2 class="stat-value">@TotalClasses</h2>
                     <p class="stat-label">Classes</p>
-                     <div class="mt-auto">
+                    <div class="mt-auto">
                         <a href="classes" class="text-decoration-none small fw-bold">Manage &rarr;</a>
                     </div>
                 </div>
 
-                 <!-- Chart Placeholder - Span 2 columns, 2 rows -->
+                <!-- Chart Placeholder - Span 2 columns, 2 rows -->
                 <div class="card-premium grid-span-2 grid-row-2">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="card-title">Attendance Overview (Last 7 Days)</h5>
@@ -82,7 +86,6 @@
                             @foreach (var day in RecentAbsences)
                             {
                                 var height = MaxAbsences > 0 ? (day.Count * 100 / MaxAbsences) : 0;
-                                // Minimum height 5% for visibility, max 95%
                                 var displayHeight = Math.Max(5, Math.Min(95, height));
 
                                 <div class="d-flex flex-column align-items-center" style="width: 12%; height: 100%; justify-content: flex-end;">
@@ -101,15 +104,15 @@
                     </div>
                 </div>
 
-                <!-- Recent Activity or Other Actions -->
-                 <div class="card-premium grid-span-2">
+                <!-- Quick Actions -->
+                <div class="card-premium grid-span-2">
                     <h5 class="card-title mb-3">Quick Actions</h5>
                     <div class="d-grid gap-2 grid-cols-2" style="grid-template-columns: 1fr 1fr; display: grid;">
                         <a href="subjects" class="btn btn-outline text-start p-3 h-100 d-flex flex-column align-items-start justify-content-center">
                             <i class="bi bi-book mb-2 fs-4 text-danger"></i>
                             <span>Subjects</span>
                         </a>
-                         <a href="grades" class="btn btn-outline text-start p-3 h-100 d-flex flex-column align-items-start justify-content-center">
+                        <a href="grades" class="btn btn-outline text-start p-3 h-100 d-flex flex-column align-items-start justify-content-center">
                             <i class="bi bi-graph-up mb-2 fs-4 text-success"></i>
                             <span>Grades</span>
                         </a>
@@ -122,30 +125,30 @@
         <AuthorizeView Roles="Teacher" Context="teacherContext">
             <div class="bento-grid">
                 <div class="card-premium" style="grid-column: span 2;">
-                     <div class="d-flex align-items-center mb-3">
-                         <div class="card-icon me-3" style="background: #DCFCE7; color: #16A34A;">
-                             <i class="bi bi-person-badge"></i>
-                         </div>
-                         <div>
-                             <h5 class="card-title mb-0">Teacher Portal</h5>
-                             <p class="text-muted small mb-0">Manage your classes and students</p>
-                         </div>
-                     </div>
-                     <div class="row g-3">
-                         <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="card-icon me-3" style="background: #DCFCE7; color: #16A34A;">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">Teacher Portal</h5>
+                            <p class="text-muted small mb-0">Manage your classes and students</p>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
                             <a href="grades" class="btn btn-primary w-100 py-3">
                                 <i class="bi bi-clipboard-data me-2"></i> Manage Grades
                             </a>
-                         </div>
-                         <div class="col-md-6">
-                             <a href="messages" class="btn btn-outline w-100 py-3">
+                        </div>
+                        <div class="col-md-6">
+                            <a href="messages" class="btn btn-outline w-100 py-3">
                                 <i class="bi bi-envelope me-2"></i> Messages
                             </a>
-                         </div>
-                     </div>
+                        </div>
+                    </div>
                 </div>
 
-                 <div class="card-premium">
+                <div class="card-premium">
                     <h5 class="card-title">Recent Updates</h5>
                     <p class="text-muted small">No new notifications.</p>
                 </div>
@@ -153,51 +156,199 @@
         </AuthorizeView>
 
         <AuthorizeView Roles="Student" Context="studentContext">
-            <div class="bento-grid">
-                 <div class="card-premium grid-span-2">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
+            @if (StudentIsLoading)
+            {
+                <div class="spinner-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading…</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Stats Row -->
+                <div class="student-stats-row">
+                    <div class="student-stat-card">
+                        <div class="stat-icon-box" style="background: #EEF2FF; color: #4F46E5;">
+                            <i class="bi bi-graph-up fs-5"></i>
+                        </div>
                         <div>
-                             <h5 class="card-title mb-1">Academic Performance</h5>
-                             <p class="text-muted small">Your average grade</p>
-                        </div>
-                        <div class="text-end">
-                            <span class="display-6 fw-bold text-primary">@StudentAverageGrade.ToString("F1")</span>
+                            <div class="stat-meta-label">Overall Average</div>
+                            <div class="stat-value-serif">@StudentOverallAvg.ToString("F2")</div>
+                            <div class="stat-hint @GetGradeTrendClass(StudentOverallAvg)">@GetGradeLabel(StudentOverallAvg)</div>
                         </div>
                     </div>
-                    <div class="progress" style="height: 8px; border-radius: 10px;">
-                        <div class="progress-bar bg-primary" role="progressbar" style="width: @(StudentAverageGrade * 10)%" aria-valuenow="@(StudentAverageGrade * 10)" aria-valuemin="0" aria-valuemax="100"></div>
+
+                    <div class="student-stat-card">
+                        <div class="stat-icon-box" style="background: @(StudentAbsences.Any(a => !a.IsExcused) ? "#FEE2E2" : "#DCFCE7"); color: @(StudentAbsences.Any(a => !a.IsExcused) ? "#DC2626" : "#059669");">
+                            <i class="bi bi-calendar-check fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="stat-meta-label">Absences</div>
+                            <div class="stat-value-serif">@StudentAbsences.Count</div>
+                            <div class="stat-hint">@StudentAbsences.Count(a => !a.IsExcused) unexcused</div>
+                        </div>
                     </div>
-                    <div class="mt-4">
-                         <a href="my-grades" class="btn btn-primary btn-sm">View Full Report</a>
+
+                    <div class="student-stat-card">
+                        <div class="stat-icon-box" style="background: #CFFAFE; color: #0891B2;">
+                            <i class="bi bi-envelope fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="stat-meta-label">Messages</div>
+                            <div class="stat-value-serif">@StudentUnreadMessages</div>
+                            <div class="stat-hint">unread</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="card-premium">
-                     <div class="card-icon" style="background: #E0E7FF; color: #4F46E5;">
-                        <i class="bi bi-person-circle"></i>
-                    </div>
-                    <h5 class="card-title">My Profile</h5>
-                    <a href="my-profile" class="stretched-link text-muted small">View Details &rarr;</a>
+                <!-- Subject Grades -->
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="mb-0 fw-semibold d-flex align-items-center gap-2">
+                        <i class="bi bi-journal-bookmark text-primary"></i>
+                        Subject Grades
+                    </h5>
+                    <a href="my-grades" class="small fw-semibold text-primary text-decoration-none">Full Report →</a>
                 </div>
 
-                 <div class="card-premium">
-                     <div class="card-icon" style="background: #FEF3C7; color: #D97706;">
-                        <i class="bi bi-people"></i>
-                    </div>
-                    <h5 class="card-title">Teachers</h5>
-                    <a href="teachers-list" class="stretched-link text-muted small">Contact Staff &rarr;</a>
-                </div>
+                @if (StudentGradesBySubject.Any())
+                {
+                    <div class="subject-grades-grid">
+                        @{ int subjectIdx = 0; }
+                        @foreach (var group in StudentGradesBySubject)
+                        {
+                            var avg = group.Average(g => (double)g.Value);
+                            var vals = group.Select(g => (double)g.Value).ToList();
+                            var trend = GetGradeTrend(vals);
+                            var colorClass = GetGradeColorClass(avg);
+                            var cp = SubjectColorPalette[subjectIdx % SubjectColorPalette.Length];
+                            var sparkSvg = GenerateSparkLine(vals, cp.Color, subjectIdx);
+                            subjectIdx++;
 
-                 <div class="card-premium">
-                     <div class="card-icon" style="background: #FEE2E2; color: #DC2626;">
-                        <i class="bi bi-envelope"></i>
-                    </div>
-                    <h5 class="card-title">Messages</h5>
-                    <a href="messages" class="stretched-link text-muted small">Inbox &rarr;</a>
-                </div>
+                            <div class="subject-grade-card @colorClass">
+                                <div class="subject-card-header">
+                                    <div class="subject-icon" style="background: @cp.Bg; color: @cp.Color;">
+                                        <i class="@GetSubjectIcon(group.Key)"></i>
+                                    </div>
+                                    <div class="subject-name-label">@group.Key</div>
+                                </div>
 
-            </div>
+                                <div class="grade-meta-row">
+                                    <div class="grade-num-display @colorClass">@avg.ToString("F2")</div>
+                                    @if (vals.Count >= 2)
+                                    {
+                                        <div class="grade-trend-pill @(trend > 0.05 ? "up" : trend < -0.05 ? "down" : "flat")">
+                                            @(trend > 0.05 ? "↑" : trend < -0.05 ? "↓" : "→") @Math.Abs(trend).ToString("F1")
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="grade-label-text mb-2">
+                                    @GetGradeLabel(avg) · @group.Count() @(group.Count() == 1 ? "grade" : "grades")
+                                </div>
+
+                                @if (vals.Count >= 2)
+                                {
+                                    <div class="sparkline-wrap">
+                                        @((MarkupString)sparkSvg)
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle-fill me-2"></i> No grades recorded yet. Check back after your first assessments.
+                    </div>
+                }
+
+                <!-- Bottom Grid: Schedule + Attendance -->
+                <div class="student-bottom-grid">
+
+                    <!-- Today's Schedule -->
+                    <div class="card-table">
+                        <div class="card-table-header">
+                            <h5><i class="bi bi-calendar3"></i> Today's Schedule</h5>
+                            <span class="small text-muted">@DateTime.Now.ToString("ddd, MMM d")</span>
+                        </div>
+                        @if (StudentTodaySchedule.Any())
+                        {
+                            @foreach (var entry in StudentTodaySchedule)
+                            {
+                                var isNext = NextClassToday != null && entry.Id == NextClassToday.Id;
+                                <div class="schedule-entry @(isNext ? "is-next" : "")">
+                                    <div class="schedule-time-col">
+                                        @entry.StartTime.ToString(@"hh\:mm")
+                                    </div>
+                                    <div>
+                                        <div class="schedule-subject-name">
+                                            @(entry.ClassSubject?.Subject?.Name ?? "Class")
+                                            @if (isNext) { <span class="next-badge">NEXT</span> }
+                                        </div>
+                                        <div class="schedule-room-text">
+                                            @(string.IsNullOrEmpty(entry.RoomNumber) ? "—" : entry.RoomNumber)
+                                            · ends @entry.EndTime.ToString(@"hh\:mm")
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="empty-state py-4">
+                                <i class="bi bi-calendar-event"></i>
+                                <h5>No classes today</h5>
+                                <p>Nothing scheduled — enjoy your time!</p>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Attendance Summary -->
+                    <div class="card-table">
+                        <div class="card-table-header">
+                            <h5><i class="bi bi-calendar-check"></i> Attendance</h5>
+                            <a href="my-grades" class="small text-primary text-decoration-none">Details →</a>
+                        </div>
+
+                        @{
+                            var excused = StudentAbsences.Count(a => a.IsExcused);
+                            var unexcused = StudentAbsences.Count(a => !a.IsExcused);
+                        }
+
+                        <div class="absence-summary">
+                            <span class="text-secondary small">Total Absences</span>
+                            <span class="fw-semibold">@StudentAbsences.Count</span>
+                        </div>
+                        <div class="absence-summary">
+                            <span class="text-secondary small">Excused</span>
+                            <span class="badge bg-success">@excused</span>
+                        </div>
+                        <div class="absence-summary">
+                            <span class="text-secondary small">Unexcused</span>
+                            <span class="badge @(unexcused > 0 ? "bg-danger" : "bg-secondary")">@unexcused</span>
+                        </div>
+
+                        @if (!StudentAbsences.Any())
+                        {
+                            <div class="text-center py-4">
+                                <i class="bi bi-patch-check-fill text-success" style="font-size: 2rem;"></i>
+                                <p class="small text-muted mt-2 mb-0">Perfect attendance!</p>
+                            </div>
+                        }
+
+                        <div class="p-3 border-top border-light">
+                            <a href="my-grades" class="btn btn-outline w-100 btn-sm">
+                                <i class="bi bi-list-check me-1"></i> View Full Record
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            }
         </AuthorizeView>
+
     </Authorized>
 </AuthorizeView>
 
@@ -207,7 +358,35 @@
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
-    private string Greeting = "Good Morning"; // Default
+    private string Greeting = "Good Morning";
+
+    // ---- Admin data ----
+    private int TotalStudents;
+    private int TotalTeachers;
+    private int TotalClasses;
+    private List<DailyAbsenceStat> RecentAbsences = new();
+    private int MaxAbsences = 1;
+
+    // ---- Student data ----
+    private bool StudentIsLoading = true;
+    private List<IGrouping<string, GradeViewModel>> StudentGradesBySubject = new();
+    private double StudentOverallAvg = 0;
+    private List<Absence> StudentAbsences = new();
+    private List<ScheduleEntry> StudentTodaySchedule = new();
+    private ScheduleEntry? NextClassToday;
+    private int StudentUnreadMessages = 0;
+
+    private static readonly (string Color, string Bg)[] SubjectColorPalette =
+    {
+        ("#4F46E5", "#EEF2FF"),
+        ("#0891B2", "#CFFAFE"),
+        ("#059669", "#DCFCE7"),
+        ("#D97706", "#FEF3C7"),
+        ("#7C3AED", "#EDE9FE"),
+        ("#0F766E", "#CCFBF1"),
+        ("#DC2626", "#FEE2E2"),
+        ("#9333EA", "#F3E8FF"),
+    };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -224,21 +403,9 @@
                 };
                 StateHasChanged();
             }
-            catch
-            {
-                // Fallback or ignore if JS fails
-            }
+            catch { }
         }
     }
-
-    private int TotalStudents;
-    private int TotalTeachers;
-    private int TotalClasses;
-    private List<DailyAbsenceStat> RecentAbsences = new();
-    private int MaxAbsences = 1;
-
-    // Student specific
-    private double StudentAverageGrade = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -251,7 +418,8 @@
         }
         else if (user.IsInRole("Student"))
         {
-            await LoadStudentStats(user.Identity?.Name);
+            var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            await LoadStudentStats(userId);
         }
     }
 
@@ -261,71 +429,164 @@
         TotalTeachers = await DbContext.Teachers.CountAsync();
         TotalClasses = await DbContext.SchoolClasses.CountAsync();
 
-        // Calculate recent absences for the chart (last 7 days)
         var sevenDaysAgo = DateTime.Today.AddDays(-6);
         var absences = await DbContext.Absences
             .Where(a => a.Date >= sevenDaysAgo)
             .ToListAsync();
 
-        // Group by Date (only date part)
         var grouped = absences
             .GroupBy(a => a.Date.Date)
             .Select(g => new DailyAbsenceStat { Date = g.Key, Count = g.Count() })
             .ToList();
 
-        // Fill in missing days
         for (int i = 0; i < 7; i++)
         {
             var date = sevenDaysAgo.AddDays(i);
             if (!grouped.Any(d => d.Date == date))
-            {
                 grouped.Add(new DailyAbsenceStat { Date = date, Count = 0 });
-            }
         }
 
         RecentAbsences = grouped.OrderBy(d => d.Date).ToList();
         if (RecentAbsences.Any())
         {
             MaxAbsences = RecentAbsences.Max(d => d.Count);
-            if (MaxAbsences == 0) MaxAbsences = 1; // Avoid divide by zero
+            if (MaxAbsences == 0) MaxAbsences = 1;
         }
     }
 
-    private async Task LoadStudentStats(string? username)
+    private async Task LoadStudentStats(string? userId)
     {
-        if (string.IsNullOrEmpty(username)) return;
-
-        var student = await DbContext.Students
-            .Include(s => s.Grades)
-            .FirstOrDefaultAsync(s => s.UserId == username || s.FirstName + " " + s.LastName == username); // Fallback match if username scheme differs
-
-        // Assuming Identity Name maps to Student.UserId or similar.
-        // If the implementation uses email as username, we might need a different lookup.
-        // Let's try to match by UserId first (which is standard).
-        // Since I don't have UserManager injected, I'll rely on what's in DbContext.
-
-        if (student == null)
+        if (string.IsNullOrEmpty(userId)) { StudentIsLoading = false; return; }
+        try
         {
-             // Fallback: try to find by checking if the User Name is in the student table?
-             // Actually, usually UserId in DB stores the GUID from AspNetUsers.
-             // But context.User.Identity.Name is usually the Email/Username.
-             // The `Student` model has `UserId`. It's safer to query generically if we don't know the mapping.
-             // But for now let's assume `UserId` in Student matches the logged in user ID, which we can't get easily from Identity.Name without UserManager.
-             // Wait, `AuthenticationState` provides Claims. One of them is likely `sub` (Subject ID).
+            var student = await StudentService.GetStudentByUserIdAsync(userId);
+            if (student != null)
+            {
+                var grades = await GradeService.GetGradesForStudentAsync(student.Id);
+                StudentGradesBySubject = grades.GroupBy(g => g.SubjectName).ToList();
+                StudentOverallAvg = grades.Any() ? grades.Average(g => (double)g.Value) : 0;
 
-             var userIdClaim = (await authenticationStateTask).User.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
-             if (userIdClaim != null)
-             {
-                 student = await DbContext.Students
-                     .Include(s => s.Grades)
-                     .FirstOrDefaultAsync(s => s.UserId == userIdClaim.Value);
-             }
+                StudentAbsences = await AbsenceService.GetAbsencesForStudentAsync(student.Id);
+
+                if (student.SchoolClassId.HasValue)
+                {
+                    var allSchedule = await ScheduleService.GetScheduleForClassAsync(student.SchoolClassId.Value);
+                    var today = DateTime.Now.DayOfWeek;
+                    StudentTodaySchedule = allSchedule
+                        .Where(e => e.DayOfWeek == today)
+                        .OrderBy(e => e.StartTime)
+                        .ToList();
+                    var now = DateTime.Now.TimeOfDay;
+                    NextClassToday = StudentTodaySchedule.FirstOrDefault(e => e.StartTime > now);
+                }
+
+                var messages = await MessageService.GetMessagesForUserAsync(userId);
+                StudentUnreadMessages = messages.Count(m => !m.IsRead);
+            }
+        }
+        catch { }
+        finally { StudentIsLoading = false; }
+    }
+
+    // ---- Grade helpers ----
+
+    private static string GetGradeLabel(double value) => value switch
+    {
+        >= 5.50 => "Excellent",
+        >= 4.50 => "Very Good",
+        >= 3.50 => "Good",
+        >= 3.00 => "Average",
+        _ => "Poor"
+    };
+
+    private static string GetGradeColorClass(double value) => value switch
+    {
+        >= 5.50 => "grade-excellent",
+        >= 4.50 => "grade-good",
+        >= 3.50 => "grade-average",
+        _ => "grade-poor"
+    };
+
+    private static string GetGradeTrendClass(double value) => value switch
+    {
+        >= 4.50 => "text-success",
+        >= 3.50 => "text-warning",
+        _ => "text-danger"
+    };
+
+    private static double GetGradeTrend(List<double> values)
+    {
+        if (values.Count < 2) return 0;
+        var half = Math.Max(1, values.Count / 2);
+        var first = values.Take(half).Average();
+        var second = values.Skip(half).Average();
+        return second - first;
+    }
+
+    private static string GetSubjectIcon(string subjectName)
+    {
+        var n = subjectName.ToLowerInvariant();
+        if (n.Contains("math") || n.Contains("матем")) return "bi bi-calculator";
+        if (n.Contains("phys") || n.Contains("физик"))  return "bi bi-lightning-charge";
+        if (n.Contains("chem") || n.Contains("хими"))   return "bi bi-flask";
+        if (n.Contains("bio")  || n.Contains("биол"))   return "bi bi-heart-pulse";
+        if (n.Contains("hist") || n.Contains("истор"))  return "bi bi-hourglass-split";
+        if (n.Contains("eng")  || n.Contains("lit") || n.Contains("език")) return "bi bi-pen";
+        if (n.Contains("comp") || n.Contains("info") || n.Contains("програм")) return "bi bi-code-slash";
+        if (n.Contains("geo")  || n.Contains("геог"))   return "bi bi-globe2";
+        if (n.Contains("art")  || n.Contains("изобраз")) return "bi bi-palette";
+        if (n.Contains("music") || n.Contains("музик")) return "bi bi-music-note-beamed";
+        if (n.Contains("sport") || n.Contains("физкулт")) return "bi bi-trophy";
+        return "bi bi-book";
+    }
+
+    // ---- SVG Sparkline ----
+
+    private static string GenerateSparkLine(List<double> values, string color, int index)
+    {
+        if (values.Count < 2) return "";
+
+        const double w = 100, h = 32;
+        var min = values.Min();
+        var max = values.Max();
+        var range = max - min == 0 ? 1.0 : max - min;
+        var ic = System.Globalization.CultureInfo.InvariantCulture;
+
+        var pts = values.Select((v, i) => new
+        {
+            x = i / (double)(values.Count - 1) * w,
+            y = h - ((v - min) / range) * (h * 0.75) - h * 0.1
+        }).ToList();
+
+        string F(double d) => d.ToString("F1", ic);
+
+        var sb = new System.Text.StringBuilder();
+        sb.Append("M ").Append(F(pts[0].x)).Append(',').Append(F(pts[0].y));
+        for (int i = 0; i < pts.Count - 1; i++)
+        {
+            var cpx = pts[i].x + (pts[i + 1].x - pts[i].x) / 2.0;
+            sb.Append(" C ")
+              .Append(F(cpx)).Append(',').Append(F(pts[i].y))
+              .Append(' ')
+              .Append(F(cpx)).Append(',').Append(F(pts[i + 1].y))
+              .Append(' ')
+              .Append(F(pts[i + 1].x)).Append(',').Append(F(pts[i + 1].y));
         }
 
-        if (student != null && student.Grades.Any())
-        {
-            StudentAverageGrade = student.Grades.Average(g => g.Value);
-        }
+        var linePath = sb.ToString();
+        var fillPath = $"{linePath} L {F(pts.Last().x)},{F(h)} L {F(pts.First().x)},{F(h)} Z";
+        var gradId = $"spkgrad{index}";
+
+        return
+            $"<svg viewBox=\"0 0 100 32\" preserveAspectRatio=\"none\" style=\"width:100%;height:100%;overflow:visible;\">" +
+            $"<defs><linearGradient id=\"{gradId}\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">" +
+            $"<stop offset=\"0%\" stop-color=\"{color}\" stop-opacity=\"0.18\"/>" +
+            $"<stop offset=\"100%\" stop-color=\"{color}\" stop-opacity=\"0\"/>" +
+            $"</linearGradient></defs>" +
+            $"<path d=\"{fillPath}\" fill=\"url(#{gradId})\"/>" +
+            $"<path d=\"{linePath}\" fill=\"none\" stroke=\"{color}\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>" +
+            $"<circle cx=\"{F(pts.Last().x)}\" cy=\"{F(pts.Last().y)}\" r=\"2.5\" fill=\"{color}\"/>" +
+            "</svg>";
     }
 
     public class DailyAbsenceStat

@@ -1,0 +1,2205 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>daskAL — Student Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============================================================
+       CSS CUSTOM PROPERTIES — Light & Dark
+    ============================================================ */
+    :root {
+      --primary:        #4F46E5;
+      --primary-light:  #818CF8;
+      --primary-bg:     #EEF2FF;
+
+      --bg:             #F8FAFC;
+      --surface:        #FFFFFF;
+      --surface-2:      #F1F5F9;
+      --border:         #E2E8F0;
+
+      --text:           #0F172A;
+      --text-2:         #475569;
+      --text-3:         #94A3B8;
+
+      --success:        #059669;
+      --success-bg:     #DCFCE7;
+      --warning:        #D97706;
+      --warning-bg:     #FEF3C7;
+      --danger:         #DC2626;
+      --danger-bg:      #FEE2E2;
+      --info:           #0891B2;
+      --info-bg:        #CFFAFE;
+
+      --sidebar-w:      260px;
+      --topbar-h:       64px;
+      --radius:         12px;
+      --radius-sm:      8px;
+      --radius-lg:      16px;
+      --shadow:         0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.06);
+      --shadow-md:      0 4px 16px rgba(0,0,0,.10), 0 8px 24px rgba(0,0,0,.08);
+      --shadow-lg:      0 12px 40px rgba(0,0,0,.14);
+      --transition:     200ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-md:  300ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="dark"] {
+      --bg:             #0F172A;
+      --surface:        #1E293B;
+      --surface-2:      #263347;
+      --border:         #334155;
+
+      --text:           #F1F5F9;
+      --text-2:         #94A3B8;
+      --text-3:         #475569;
+
+      --primary:        #818CF8;
+      --primary-light:  #A5B4FC;
+      --primary-bg:     #312E81;
+
+      --success-bg:     #064E3B;
+      --warning-bg:     #451A03;
+      --danger-bg:      #450A0A;
+      --info-bg:        #164E63;
+
+      --shadow:         0 1px 3px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.25);
+      --shadow-md:      0 4px 16px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.30);
+      --shadow-lg:      0 12px 40px rgba(0,0,0,.50);
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+    /* ============================================================
+       KEYFRAMES
+    ============================================================ */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(110%); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(110%); }
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%); }
+      to   { transform: translateX(0); }
+    }
+
+    @keyframes slideOutRight {
+      from { transform: translateX(0); }
+      to   { transform: translateX(100%); }
+    }
+
+    @keyframes sheetUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+
+    @keyframes backdropIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ============================================================
+       APP SHELL LAYOUT
+    ============================================================ */
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ============================================================
+       SIDEBAR
+    ============================================================ */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 200;
+      transition: transform var(--transition-md);
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      overflow-y: auto;
+    }
+
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      padding: 8px 8px 6px;
+      margin-top: 8px;
+    }
+
+    .nav-section-label:first-child { margin-top: 0; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 10px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      color: var(--text-2);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      position: relative;
+      min-height: 48px;
+    }
+
+    .nav-item:hover {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: var(--primary-bg);
+      color: var(--primary);
+    }
+
+    .nav-item-icon {
+      font-size: 17px;
+      width: 22px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--danger);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 9999px;
+      line-height: 16px;
+    }
+
+    .sidebar-user {
+      padding: 12px 16px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 9999px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sidebar-user-info { overflow: hidden; }
+
+    .sidebar-user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar-user-sub {
+      font-size: 11px;
+      color: var(--text-3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ============================================================
+       MAIN CONTENT
+    ============================================================ */
+    .main-wrap {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ============================================================
+       TOPBAR
+    ============================================================ */
+    .topbar {
+      position: sticky;
+      top: 0;
+      height: var(--topbar-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 24px;
+      z-index: 100;
+    }
+
+    .topbar-hamburger {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      color: var(--text-2);
+      transition: all var(--transition);
+      min-height: 48px;
+      min-width: 48px;
+    }
+
+    .topbar-hamburger:hover { background: var(--surface-2); color: var(--text); }
+
+    .topbar-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .topbar-search {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 12px;
+      height: 36px;
+      width: 240px;
+      transition: all var(--transition);
+    }
+
+    .topbar-search:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+    }
+
+    .topbar-search input {
+      background: none;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--text);
+      width: 100%;
+    }
+
+    .topbar-search input::placeholder { color: var(--text-3); }
+
+    .topbar-search-icon { color: var(--text-3); font-size: 14px; }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-2);
+      font-size: 18px;
+      transition: all var(--transition);
+      position: relative;
+      min-height: 48px;
+      min-width: 48px;
+    }
+
+    .icon-btn:hover { background: var(--surface-2); color: var(--text); }
+
+    .notif-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 8px;
+      height: 8px;
+      border-radius: 9999px;
+      background: var(--danger);
+      border: 2px solid var(--surface);
+    }
+
+    .dark-toggle {
+      width: 44px;
+      height: 24px;
+      background: var(--border);
+      border-radius: 9999px;
+      position: relative;
+      cursor: pointer;
+      transition: background var(--transition);
+      flex-shrink: 0;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 3px;
+    }
+
+    .dark-toggle.on { background: var(--primary); }
+
+    .dark-toggle-thumb {
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 9999px;
+      transition: transform var(--transition);
+      box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    }
+
+    .dark-toggle.on .dark-toggle-thumb { transform: translateX(20px); }
+
+    /* ============================================================
+       PAGE CONTENT
+    ============================================================ */
+    .page-content {
+      padding: 28px 28px 48px;
+      flex: 1;
+    }
+
+    /* ============================================================
+       WELCOME HEADER
+    ============================================================ */
+    .welcome-header {
+      margin-bottom: 24px;
+      animation: fadeUp var(--transition-md) both;
+    }
+
+    .welcome-greeting {
+      font-size: 26px;
+      font-weight: 600;
+      font-family: 'Playfair Display', serif;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .welcome-greeting .name { color: var(--primary); }
+
+    .welcome-date {
+      font-size: 13px;
+      color: var(--text-2);
+      margin-top: 4px;
+    }
+
+    /* ============================================================
+       STAT CARDS
+    ============================================================ */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      box-shadow: var(--shadow);
+      transition: all var(--transition-md);
+      animation: fadeUp var(--transition-md) both;
+    }
+
+    .stat-card:nth-child(1) { animation-delay: 60ms; }
+    .stat-card:nth-child(2) { animation-delay: 120ms; }
+    .stat-card:nth-child(3) { animation-delay: 180ms; }
+
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .stat-body { flex: 1; min-width: 0; }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+      color: var(--text);
+      line-height: 1.1;
+      margin-top: 2px;
+    }
+
+    .stat-meta {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat-trend {
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .stat-trend.up   { color: var(--success); }
+    .stat-trend.down { color: var(--danger); }
+    .stat-trend.warn { color: var(--warning); }
+
+    /* ============================================================
+       GRADE CARDS GRID
+    ============================================================ */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .grades-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .grade-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: all var(--transition-md);
+      animation: fadeUp var(--transition-md) both;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .grade-card:nth-child(1) { animation-delay: 80ms; }
+    .grade-card:nth-child(2) { animation-delay: 130ms; }
+    .grade-card:nth-child(3) { animation-delay: 180ms; }
+    .grade-card:nth-child(4) { animation-delay: 230ms; }
+    .grade-card:nth-child(5) { animation-delay: 280ms; }
+    .grade-card:nth-child(6) { animation-delay: 330ms; }
+
+    .grade-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary);
+    }
+
+    .grade-card-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .subject-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .subject-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .grade-card-center {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .grade-letter {
+      font-family: 'Playfair Display', serif;
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    /* Grade tier coloring */
+    .grade-a    { color: #059669; }  /* A, A-, A+ */
+    .grade-b    { color: #0891B2; }  /* B, B+, B- */
+    .grade-c    { color: #D97706; }  /* C, C+, C- */
+    .grade-d    { color: #DC2626; }  /* D and below */
+
+    .grade-pct-wrap {
+      text-align: right;
+    }
+
+    .grade-pct {
+      font-size: 20px;
+      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+      color: var(--text-2);
+    }
+
+    .grade-pct-label {
+      font-size: 11px;
+      color: var(--text-3);
+    }
+
+    .grade-trend {
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-top: 2px;
+    }
+
+    .grade-trend.up   { color: var(--success); }
+    .grade-trend.down { color: var(--danger); }
+
+    /* ============================================================
+       SPARKLINE SVG
+    ============================================================ */
+    .sparkline-wrap {
+      height: 48px;
+      width: 100%;
+      position: relative;
+    }
+
+    .sparkline-wrap svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    /* ============================================================
+       BOTTOM 2-COL SECTION
+    ============================================================ */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: fadeUp var(--transition-md) both;
+    }
+
+    .panel:nth-child(1) { animation-delay: 200ms; }
+    .panel:nth-child(2) { animation-delay: 260ms; }
+
+    .panel-header {
+      padding: 16px 16px 0;
+      flex-shrink: 0;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    /* ============================================================
+       FILTER TABS
+    ============================================================ */
+    .filter-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+    }
+
+    .filter-tab {
+      flex: 1;
+      height: 32px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-2);
+      transition: all var(--transition);
+      cursor: pointer;
+      min-height: 48px;
+    }
+
+    .filter-tab[aria-selected="true"] {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: var(--shadow);
+    }
+
+    .filter-tab:hover:not([aria-selected="true"]) {
+      color: var(--text);
+    }
+
+    /* ============================================================
+       ASSIGNMENTS LIST
+    ============================================================ */
+    .assignments-scroll {
+      overflow-y: auto;
+      max-height: 420px;
+      padding: 8px 16px 16px;
+    }
+
+    .assignment-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: all var(--transition);
+      min-height: 48px;
+    }
+
+    .assignment-item:last-child { border-bottom: none; }
+
+    .assignment-item:hover .assignment-title { color: var(--primary); }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 9999px;
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+
+    .status-dot.submitted { background: var(--success); }
+    .status-dot.pending   { background: var(--warning); }
+    .status-dot.overdue   { background: var(--danger); }
+
+    .assignment-body { flex: 1; min-width: 0; }
+
+    .assignment-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color var(--transition);
+    }
+
+    .assignment-meta {
+      font-size: 11px;
+      color: var(--text-3);
+      margin-top: 3px;
+    }
+
+    .assignment-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      line-height: 16px;
+    }
+
+    .badge.submitted { background: var(--success-bg); color: var(--success); }
+    .badge.pending   { background: var(--warning-bg); color: var(--warning); }
+    .badge.overdue   { background: var(--danger-bg);  color: var(--danger); }
+
+    .due-label {
+      font-size: 11px;
+      color: var(--text-3);
+    }
+
+    /* ============================================================
+       SCHEDULE LIST
+    ============================================================ */
+    .schedule-scroll {
+      overflow-y: auto;
+      max-height: 420px;
+      padding: 8px 16px 16px;
+    }
+
+    .schedule-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      min-height: 48px;
+    }
+
+    .schedule-item:last-child { border-bottom: none; }
+
+    .schedule-time {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-2);
+      width: 60px;
+      flex-shrink: 0;
+      line-height: 1.4;
+    }
+
+    .schedule-time span {
+      display: block;
+      font-size: 10px;
+      color: var(--text-3);
+    }
+
+    .schedule-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 9999px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    .schedule-item.done .schedule-dot   { background: var(--success); }
+    .schedule-item.next .schedule-dot   { background: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent); }
+
+    .schedule-body { flex: 1; min-width: 0; }
+
+    .schedule-subject {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .schedule-item.done .schedule-subject { color: var(--text-3); }
+
+    .schedule-detail {
+      font-size: 11px;
+      color: var(--text-3);
+      margin-top: 2px;
+    }
+
+    .next-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: var(--primary);
+      color: #fff;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      flex-shrink: 0;
+    }
+
+    /* ============================================================
+       BACKDROP
+    ============================================================ */
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-md);
+    }
+
+    .backdrop.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ============================================================
+       ASSIGNMENT DETAIL MODAL (bottom sheet)
+    ============================================================ */
+    .modal {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      width: min(680px, 100vw);
+      max-height: 88vh;
+      background: var(--surface);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      z-index: 400;
+      overflow-y: auto;
+      transition: transform var(--transition-md);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal.open {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .modal-drag-handle {
+      width: 40px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 9999px;
+      margin: 12px auto 0;
+    }
+
+    .modal-content {
+      padding: 20px 28px 32px;
+    }
+
+    .modal-subject-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .modal-title {
+      font-size: 22px;
+      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+      color: var(--text);
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    .modal-meta {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .modal-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .modal-grade-block {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .modal-grade-letter {
+      font-family: 'Playfair Display', serif;
+      font-size: 52px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .modal-grade-info { flex: 1; }
+
+    .modal-grade-pct {
+      font-size: 20px;
+      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+      color: var(--text);
+    }
+
+    .modal-grade-feedback {
+      font-size: 13px;
+      color: var(--text-2);
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    .modal-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-3);
+      margin-bottom: 8px;
+    }
+
+    .modal-desc {
+      font-size: 14px;
+      color: var(--text-2);
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      height: 42px;
+      padding: 0 20px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 48px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary:hover {
+      background: color-mix(in srgb, var(--primary) 88%, #000);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 35%, transparent);
+    }
+
+    .btn-secondary {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    /* ============================================================
+       NOTIFICATION PANEL
+    ============================================================ */
+    .notif-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 380px;
+      max-width: 100vw;
+      height: 100vh;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      z-index: 400;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform var(--transition-md);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .notif-panel.open {
+      transform: translateX(0);
+    }
+
+    .notif-panel-header {
+      padding: 20px 16px 0;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .notif-panel-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .notif-panel-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .notif-panel-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mark-all-btn {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--primary);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition);
+      cursor: pointer;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+    }
+
+    .mark-all-btn:hover { background: var(--primary-bg); }
+
+    .notif-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .notif-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 16px;
+      transition: background var(--transition);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .notif-item:hover { background: var(--surface-2); }
+
+    .notif-item.unread { background: color-mix(in srgb, var(--primary) 5%, transparent); }
+
+    .notif-unread-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 9999px;
+      background: var(--primary);
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+
+    .notif-icon-wrap {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .notif-body { flex: 1; min-width: 0; }
+
+    .notif-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .notif-desc {
+      font-size: 12px;
+      color: var(--text-2);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .notif-time {
+      font-size: 11px;
+      color: var(--text-3);
+      margin-top: 4px;
+    }
+
+    .notif-dismiss {
+      width: 28px;
+      height: 28px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-3);
+      font-size: 16px;
+      flex-shrink: 0;
+      transition: all var(--transition);
+      opacity: 0;
+      cursor: pointer;
+      min-height: 48px;
+      min-width: 48px;
+    }
+
+    .notif-item:hover .notif-dismiss { opacity: 1; }
+    .notif-dismiss:hover { background: var(--surface-2); color: var(--text); }
+
+    /* ============================================================
+       TOAST SYSTEM
+    ============================================================ */
+    #toast-container {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: all;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+      min-width: 280px;
+      max-width: 360px;
+      animation: toastIn 250ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      font-size: 13px;
+    }
+
+    .toast.out {
+      animation: toastOut 250ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .toast-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .toast.success .toast-icon { color: var(--success); }
+    .toast.error   .toast-icon { color: var(--danger); }
+    .toast.info    .toast-icon { color: var(--info); }
+
+    .toast-body { flex: 1; }
+    .toast-title { font-weight: 600; color: var(--text); }
+    .toast-msg   { color: var(--text-2); margin-top: 2px; }
+
+    .toast-close {
+      color: var(--text-3);
+      font-size: 16px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px;
+      transition: color var(--transition);
+      flex-shrink: 0;
+    }
+
+    .toast-close:hover { color: var(--text); }
+
+    /* ============================================================
+       MOBILE SIDEBAR OVERLAY
+    ============================================================ */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 199;
+    }
+
+    /* ============================================================
+       RESPONSIVE BREAKPOINTS
+    ============================================================ */
+    @media (max-width: 1100px) {
+      .grades-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 900px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .bottom-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+
+      .sidebar-overlay {
+        display: block;
+      }
+
+      .main-wrap { margin-left: 0; }
+
+      .topbar-hamburger { display: flex; }
+
+      .topbar-search { display: none; }
+
+      .page-content { padding: 16px 16px 40px; }
+
+      .welcome-greeting { font-size: 22px; }
+
+      .notif-panel { width: 100vw; }
+    }
+
+    @media (max-width: 640px) {
+      .stats-row { grid-template-columns: 1fr; }
+      .grades-grid { grid-template-columns: 1fr; }
+
+      .grade-card-center { flex-wrap: wrap; }
+    }
+
+    /* ============================================================
+       UTILITY
+    ============================================================ */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     BACKDROP (shared for modal + notif panel)
+============================================================ -->
+<div class="backdrop" id="backdrop" aria-hidden="true"></div>
+
+<!-- ============================================================
+     APP SHELL
+============================================================ -->
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <!-- Logo -->
+    <div class="sidebar-logo" aria-label="daskAL logo">
+      <div class="sidebar-logo-icon" aria-hidden="true">d</div>
+      <span class="sidebar-logo-text">daskAL</span>
+    </div>
+
+    <!-- Nav -->
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <button class="nav-item active" onclick="showToast('info','Dashboard','You\'re already here!')" aria-current="page">
+        <span class="nav-item-icon" aria-hidden="true">⊞</span>
+        Dashboard
+      </button>
+      <button class="nav-item" onclick="showToast('info','Grades','Grade history coming soon.')">
+        <span class="nav-item-icon" aria-hidden="true">📊</span>
+        Grades
+      </button>
+      <button class="nav-item" onclick="showToast('info','Schedule','Full timetable view coming soon.')">
+        <span class="nav-item-icon" aria-hidden="true">🗓</span>
+        Schedule
+      </button>
+      <button class="nav-item" onclick="showToast('info','Assignments','Assignment manager coming soon.')">
+        <span class="nav-item-icon" aria-hidden="true">📋</span>
+        Assignments
+        <span class="nav-badge">3</span>
+      </button>
+      <button class="nav-item" onclick="showToast('info','Attendance','Attendance records coming soon.')">
+        <span class="nav-item-icon" aria-hidden="true">✅</span>
+        Attendance
+      </button>
+
+      <div class="nav-section-label">Communication</div>
+      <button class="nav-item" onclick="showToast('info','Messages','Messaging coming soon.')">
+        <span class="nav-item-icon" aria-hidden="true">💬</span>
+        Messages
+      </button>
+      <button class="nav-item" onclick="showToast('info','Announcements','Announcements coming soon.')">
+        <span class="nav-item-icon" aria-hidden="true">📢</span>
+        Announcements
+      </button>
+
+      <div class="nav-section-label">Account</div>
+      <button class="nav-item" onclick="showToast('info','Profile','Profile page coming soon.')">
+        <span class="nav-item-icon" aria-hidden="true">👤</span>
+        My Profile
+      </button>
+      <button class="nav-item" onclick="showToast('info','Settings','Settings coming soon.')">
+        <span class="nav-item-icon" aria-hidden="true">⚙</span>
+        Settings
+      </button>
+    </nav>
+
+    <!-- User card -->
+    <div class="sidebar-user">
+      <div class="avatar" aria-hidden="true">AJ</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Alex Johnson</div>
+        <div class="sidebar-user-sub">Grade 11 — Class B</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile sidebar overlay -->
+  <div class="sidebar-overlay hidden" id="sidebar-overlay" onclick="closeSidebar()" aria-hidden="true"></div>
+
+  <!-- MAIN WRAP -->
+  <div class="main-wrap">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-hamburger" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle navigation menu">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <rect x="2" y="5"  width="16" height="2" rx="1" fill="currentColor"/>
+          <rect x="2" y="9"  width="16" height="2" rx="1" fill="currentColor"/>
+          <rect x="2" y="13" width="16" height="2" rx="1" fill="currentColor"/>
+        </svg>
+      </button>
+
+      <span class="topbar-title">Dashboard</span>
+
+      <div class="topbar-search" role="search">
+        <span class="topbar-search-icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M10 10l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <input type="search" placeholder="Search subjects, assignments…" aria-label="Search" />
+      </div>
+
+      <div class="topbar-actions">
+        <button class="icon-btn" id="notif-btn" onclick="toggleNotifPanel()" aria-label="Open notifications">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M10 2a6 6 0 00-6 6v3.5l-1.3 1.8A1 1 0 003.5 15h13a1 1 0 00.8-1.6L16 11.5V8a6 6 0 00-6-6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M8 15a2 2 0 004 0" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          <span class="notif-dot" id="notif-dot" aria-label="3 unread notifications"></span>
+        </button>
+
+        <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()" role="switch" aria-checked="false" aria-label="Toggle dark mode">
+          <span class="dark-toggle-thumb"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content" id="main-content">
+
+      <!-- WELCOME HEADER -->
+      <div class="welcome-header">
+        <h1 class="welcome-greeting">Good morning, <span class="name">Alex</span></h1>
+        <p class="welcome-date" id="today-date">Loading…</p>
+      </div>
+
+      <!-- STATS ROW -->
+      <div class="stats-row" role="region" aria-label="Key statistics">
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#EEF2FF" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <path d="M11 3L13.5 9H20L14.6 13L16.9 19.5L11 16L5.1 19.5L7.4 13L2 9H8.5L11 3Z" fill="#4F46E5"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-label">GPA</div>
+            <div class="stat-value">3.72</div>
+            <div class="stat-meta">
+              <span class="stat-trend up" aria-label="Trending up">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 2l4 4H2l4-4z" fill="currentColor"/></svg>
+                +0.14
+              </span>
+              <span>vs last semester</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#DCFCE7" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="#059669" stroke-width="2"/>
+              <path d="M7.5 11l2.5 2.5 4.5-5" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-label">Attendance</div>
+            <div class="stat-value">95.3<small style="font-size:18px;font-family:Inter">%</small></div>
+            <div class="stat-meta">
+              <span class="stat-trend up" aria-label="Trending up">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 2l4 4H2l4-4z" fill="currentColor"/></svg>
+                +1.2%
+              </span>
+              <span>this month</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3C7" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <rect x="4" y="3" width="14" height="16" rx="2" stroke="#D97706" stroke-width="2"/>
+              <path d="M8 8h6M8 12h4" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-label">Pending Assignments</div>
+            <div class="stat-value">3</div>
+            <div class="stat-meta">
+              <span class="stat-trend warn" aria-label="Warning">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 10l4-4H2l4 4z" fill="currentColor"/></svg>
+                1 due tomorrow
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /stats-row -->
+
+      <!-- GRADES SECTION -->
+      <div class="section-header" role="region" aria-label="Grades overview">
+        <h2 class="section-title">Grades Overview</h2>
+        <button class="btn btn-secondary" style="height:32px;font-size:12px;padding:0 12px;min-height:0;" onclick="showToast('info','Grades','Detailed grade report coming soon.')">View All</button>
+      </div>
+
+      <div class="grades-grid" id="grades-grid" role="list" aria-label="Subject grades"></div>
+
+      <!-- BOTTOM GRID -->
+      <div class="bottom-grid">
+
+        <!-- ASSIGNMENTS PANEL -->
+        <div class="panel" role="region" aria-label="Assignments">
+          <div class="panel-header">
+            <div class="panel-title">Assignments</div>
+            <div class="filter-tabs" role="tablist" aria-label="Filter assignments">
+              <button class="filter-tab" role="tab" aria-selected="true"  onclick="filterAssignments('all')"      id="tab-all">All</button>
+              <button class="filter-tab" role="tab" aria-selected="false" onclick="filterAssignments('pending')"  id="tab-pending">Pending</button>
+              <button class="filter-tab" role="tab" aria-selected="false" onclick="filterAssignments('overdue')"  id="tab-overdue">Overdue</button>
+            </div>
+          </div>
+          <div class="assignments-scroll" id="assignments-list" role="list" aria-label="Assignment list"></div>
+        </div>
+
+        <!-- SCHEDULE PANEL -->
+        <div class="panel" role="region" aria-label="Today's schedule">
+          <div class="panel-header">
+            <div class="panel-title">Today's Schedule</div>
+          </div>
+          <div class="schedule-scroll" id="schedule-list" role="list" aria-label="Schedule list"></div>
+        </div>
+
+      </div><!-- /bottom-grid -->
+
+    </main><!-- /page-content -->
+
+  </div><!-- /main-wrap -->
+</div><!-- /app-shell -->
+
+<!-- ============================================================
+     ASSIGNMENT DETAIL MODAL
+============================================================ -->
+<div class="modal" id="assignment-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+  <div class="modal-drag-handle" aria-hidden="true"></div>
+  <div class="modal-content">
+    <div class="modal-subject-tag" id="modal-subject-tag"></div>
+    <h2 class="modal-title" id="modal-title"></h2>
+    <div class="modal-meta">
+      <span class="modal-meta-item" id="modal-due">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="2" y="2" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 1v2M9 1v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M2 6h10" stroke="currentColor" stroke-width="1.4"/></svg>
+        <span id="modal-due-text"></span>
+      </span>
+      <span class="modal-meta-item" id="modal-status-wrap">
+        <span id="modal-status-badge" class="badge"></span>
+      </span>
+    </div>
+    <div id="modal-grade-section" class="hidden"></div>
+    <div class="modal-section-label">Instructions</div>
+    <p class="modal-desc" id="modal-desc"></p>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     NOTIFICATION PANEL
+============================================================ -->
+<aside class="notif-panel" id="notif-panel" role="dialog" aria-modal="true" aria-label="Notifications" aria-hidden="true">
+  <div class="notif-panel-header">
+    <div class="notif-panel-top">
+      <span class="notif-panel-title">Notifications</span>
+      <div class="notif-panel-actions">
+        <button class="mark-all-btn" onclick="markAllRead()" aria-label="Mark all notifications as read">Mark all read</button>
+        <button class="icon-btn" onclick="closeNotifPanel()" aria-label="Close notifications" style="font-size:20px;color:var(--text-2);">×</button>
+      </div>
+    </div>
+    <div class="filter-tabs" role="tablist" aria-label="Filter notifications" style="margin-bottom:12px;">
+      <button class="filter-tab" role="tab" aria-selected="true"  onclick="filterNotifs('all')"           id="ntab-all">All</button>
+      <button class="filter-tab" role="tab" aria-selected="false" onclick="filterNotifs('grades')"        id="ntab-grades">Grades</button>
+      <button class="filter-tab" role="tab" aria-selected="false" onclick="filterNotifs('assignments')"   id="ntab-assignments">Assign.</button>
+      <button class="filter-tab" role="tab" aria-selected="false" onclick="filterNotifs('announcements')" id="ntab-announcements">News</button>
+    </div>
+  </div>
+  <div class="notif-scroll" id="notif-list" aria-live="polite"></div>
+</aside>
+
+<!-- ============================================================
+     TOAST CONTAINER
+============================================================ -->
+<div id="toast-container" aria-live="polite" aria-atomic="false" role="status"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+'use strict';
+
+/* ============================================================
+   DATA
+============================================================ */
+const subjects = [
+  { id: 1, name: 'Mathematics',  icon: '∑',  color: '#4F46E5', bg: '#EEF2FF', grades: [82,85,87,89,91,94], grade: 'A',  pct: 94, trend: +2.1 },
+  { id: 2, name: 'Physics',      icon: '⚛',  color: '#0891B2', bg: '#CFFAFE', grades: [84,86,85,87,88,88], grade: 'B+', pct: 88, trend: +0.5 },
+  { id: 3, name: 'English Lit.', icon: '✒',  color: '#059669', bg: '#DCFCE7', grades: [88,90,89,91,90,91], grade: 'A-', pct: 91, trend: +0.3 },
+  { id: 4, name: 'History',      icon: '⏳',  color: '#D97706', bg: '#FEF3C7', grades: [78,80,79,81,82,82], grade: 'B',  pct: 82, trend: +0.8 },
+  { id: 5, name: 'Chemistry',    icon: '⚗',  color: '#7C3AED', bg: '#EDE9FE', grades: [83,84,86,85,87,87], grade: 'B+', pct: 87, trend: +1.2 },
+  { id: 6, name: 'Comp. Sci.',   icon: '⌨',  color: '#0F766E', bg: '#CCFBF1', grades: [93,95,96,97,96,97], grade: 'A+', pct: 97, trend: +1.0 },
+];
+
+const assignments = [
+  { id: 1, title: 'Calculus Problem Set #7',         subject: 'Mathematics', status: 'overdue',   due: 'Mar 12', dueTs: -3, desc: 'Complete problems 1–15 from Chapter 8. Show all work. Include integration by parts for problems 7–10.', grade: null },
+  { id: 2, title: 'Lab Report: Projectile Motion',   subject: 'Physics',     status: 'pending',   due: 'Mar 16', dueTs:  1, desc: 'Write a 3–5 page lab report documenting your experiment results. Include data tables, error analysis, and conclusions.', grade: null },
+  { id: 3, title: 'Essay: The Great Gatsby',          subject: 'English Lit.',status: 'pending',   due: 'Mar 18', dueTs:  3, desc: 'Write a 1500-word analytical essay exploring the theme of the American Dream. Use at least 3 textual references.', grade: null },
+  { id: 4, title: 'WWII Timeline Project',            subject: 'History',     status: 'submitted', due: 'Mar 10', dueTs: -5, desc: 'Create a detailed timeline of key events during WWII, 1939–1945. Include at least 20 events with brief descriptions.', grade: { pct: 88, letter: 'B+', feedback: 'Excellent research. A few dates need verification.' } },
+  { id: 5, title: 'Titration Lab Analysis',           subject: 'Chemistry',   status: 'pending',   due: 'Mar 19', dueTs:  4, desc: 'Analyze the results of the acid-base titration experiment. Calculate molarity and report sources of error.', grade: null },
+  { id: 6, title: 'Binary Search Tree Implementation',subject: 'Comp. Sci.',  status: 'submitted', due: 'Mar 11', dueTs: -4, desc: 'Implement a binary search tree in Python with insert, delete, and search operations. Include unit tests.', grade: { pct: 97, letter: 'A+', feedback: 'Outstanding work! Code is clean and well-documented.' } },
+];
+
+const schedule = [
+  { time: '08:30', end: '09:15', subject: 'Mathematics', room: 'Room 204', teacher: 'Mr. Harrison', isNext: false, done: true },
+  { time: '09:20', end: '10:05', subject: 'English Lit.', room: 'Room 118', teacher: 'Ms. Chen',    isNext: true,  done: false },
+  { time: '10:30', end: '11:15', subject: 'Chemistry',   room: 'Lab 3B',   teacher: 'Dr. Patel',   isNext: false, done: false },
+  { time: '11:20', end: '12:05', subject: 'History',     room: 'Room 211', teacher: 'Mr. Torres',  isNext: false, done: false },
+  { time: '13:00', end: '13:45', subject: 'Physics',     room: 'Lab 2A',   teacher: 'Dr. Kim',     isNext: false, done: false },
+  { time: '14:00', end: '14:45', subject: 'Comp. Sci.',  room: 'Room 301', teacher: 'Ms. Novak',   isNext: false, done: false },
+];
+
+const notifications = [
+  { id: 1, type: 'grades',        icon: '📊', title: 'Grade posted: WWII Timeline',     desc: 'Mr. Torres posted a grade for your WWII Timeline Project: B+ (88%)',                        time: '2 hours ago',  unread: true  },
+  { id: 2, type: 'grades',        icon: '📊', title: 'Grade posted: BST Implementation', desc: 'Ms. Novak posted a grade for Binary Search Tree: A+ (97%) — Outstanding work!',             time: '5 hours ago',  unread: true  },
+  { id: 3, type: 'assignments',   icon: '📋', title: 'Assignment overdue',               desc: 'Calculus Problem Set #7 was due March 12. Please submit as soon as possible.',               time: '1 day ago',    unread: true  },
+  { id: 4, type: 'assignments',   icon: '📋', title: 'New assignment: Lab Report',       desc: 'Dr. Kim added "Projectile Motion Lab Report" due March 16.',                                 time: '2 days ago',   unread: false },
+  { id: 5, type: 'announcements', icon: '📢', title: 'Spring Break Schedule',            desc: 'School will be closed April 7–11 for Spring Break. All assignment due dates adjusted accordingly.', time: '3 days ago', unread: false },
+  { id: 6, type: 'announcements', icon: '📢', title: 'Parent-Teacher Conferences',       desc: 'Conferences scheduled for March 25–26. Sign-up sheets available at the front office.',      time: '4 days ago',   unread: false },
+];
+
+/* Mutable state */
+let notifData = notifications.map(n => ({ ...n }));
+let currentAssignmentFilter = 'all';
+let currentNotifFilter = 'all';
+
+/* ============================================================
+   UTILITIES
+============================================================ */
+function gradeClass(letter) {
+  const l = letter.charAt(0).toUpperCase();
+  if (l === 'A') return 'grade-a';
+  if (l === 'B') return 'grade-b';
+  if (l === 'C') return 'grade-c';
+  return 'grade-d';
+}
+
+function subjectColor(name) {
+  const s = subjects.find(x => x.name === name);
+  return s ? { color: s.color, bg: s.bg } : { color: '#4F46E5', bg: '#EEF2FF' };
+}
+
+/* ============================================================
+   TODAY DATE
+============================================================ */
+(function setDate() {
+  const now = new Date();
+  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById('today-date').textContent =
+    'Today is ' + now.toLocaleDateString('en-US', opts);
+})();
+
+/* ============================================================
+   DARK MODE
+============================================================ */
+(function initDark() {
+  const saved = localStorage.getItem('daskAL-theme');
+  if (saved === 'dark') applyDark(true, false);
+})();
+
+function applyDark(on, save = true) {
+  document.documentElement.setAttribute('data-theme', on ? 'dark' : 'light');
+  const btn = document.getElementById('dark-toggle');
+  btn.classList.toggle('on', on);
+  btn.setAttribute('aria-checked', String(on));
+  if (save) localStorage.setItem('daskAL-theme', on ? 'dark' : 'light');
+}
+
+function toggleDark() {
+  const current = document.documentElement.getAttribute('data-theme') === 'dark';
+  applyDark(!current);
+}
+
+/* ============================================================
+   SPARKLINE GENERATOR
+============================================================ */
+function buildSparkline(values, accentColor) {
+  const W = 200, H = 48;
+  const min = Math.min(...values) - 2;
+  const max = Math.max(...values) + 2;
+  const range = max - min || 1;
+  const step = W / (values.length - 1);
+
+  const pts = values.map((v, i) => ({
+    x: i * step,
+    y: H - ((v - min) / range) * H
+  }));
+
+  // Build smooth cubic bezier path
+  let path = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i = 1; i < pts.length; i++) {
+    const cp1x = pts[i-1].x + step * 0.4;
+    const cp1y = pts[i-1].y;
+    const cp2x = pts[i].x   - step * 0.4;
+    const cp2y = pts[i].y;
+    path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${pts[i].x} ${pts[i].y}`;
+  }
+
+  // Fill area
+  const fillPath = path + ` L ${pts[pts.length-1].x} ${H} L ${pts[0].x} ${H} Z`;
+
+  const last = pts[pts.length - 1];
+  const gradId = `sg-${Math.random().toString(36).slice(2, 9)}`;
+
+  return `
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="${accentColor}" stop-opacity="0.22"/>
+          <stop offset="100%" stop-color="${accentColor}" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${fillPath}" fill="url(#${gradId})"/>
+      <path d="${path}" fill="none" stroke="${accentColor}" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="${last.x}" cy="${last.y}" r="3.5" fill="${accentColor}"/>
+      <circle cx="${last.x}" cy="${last.y}" r="6"   fill="${accentColor}" opacity="0.18"/>
+    </svg>`;
+}
+
+/* ============================================================
+   RENDER GRADE CARDS
+============================================================ */
+function renderGradeCards() {
+  const grid = document.getElementById('grades-grid');
+  grid.innerHTML = subjects.map(s => {
+    const trendUp = s.trend >= 0;
+    const trendArrow = trendUp
+      ? `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 2l4 4H2l4-4z" fill="currentColor"/></svg>`
+      : `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 10l4-4H2l4 4z" fill="currentColor"/></svg>`;
+
+    return `
+      <article class="grade-card" role="listitem" tabindex="0"
+               aria-label="${s.name}: ${s.grade}, ${s.pct}%"
+               onclick="openAssignmentBySubject('${s.name}')"
+               onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
+        <div class="grade-card-top">
+          <div class="subject-icon" style="background:${s.bg};color:${s.color}" aria-hidden="true">${s.icon}</div>
+          <span class="subject-name">${s.name}</span>
+        </div>
+        <div class="grade-card-center">
+          <span class="grade-letter ${gradeClass(s.grade)}" aria-label="Grade ${s.grade}">${s.grade}</span>
+          <div class="grade-pct-wrap">
+            <div class="grade-pct">${s.pct}%</div>
+            <div class="grade-trend ${trendUp ? 'up' : 'down'}" aria-label="Trend ${trendUp ? 'up' : 'down'} ${Math.abs(s.trend)}">
+              ${trendArrow} ${trendUp ? '+' : ''}${s.trend}%
+            </div>
+          </div>
+        </div>
+        <div class="sparkline-wrap" aria-hidden="true">
+          ${buildSparkline(s.grades, s.color)}
+        </div>
+      </article>`;
+  }).join('');
+}
+
+/* ============================================================
+   RENDER ASSIGNMENTS
+============================================================ */
+function renderAssignments(filter = 'all') {
+  currentAssignmentFilter = filter;
+  const list = document.getElementById('assignments-list');
+  const filtered = filter === 'all'
+    ? assignments
+    : assignments.filter(a => a.status === filter);
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="padding:24px;text-align:center;color:var(--text-3);font-size:13px;">No ${filter} assignments</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(a => `
+    <div class="assignment-item" role="listitem" tabindex="0"
+         onclick="openModal(${a.id})"
+         onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"
+         aria-label="${a.title}, ${a.status}, due ${a.due}">
+      <span class="status-dot ${a.status}" aria-hidden="true"></span>
+      <div class="assignment-body">
+        <div class="assignment-title">${a.title}</div>
+        <div class="assignment-meta">${a.subject}</div>
+      </div>
+      <div class="assignment-right">
+        <span class="badge ${a.status}">${a.status.charAt(0).toUpperCase() + a.status.slice(1)}</span>
+        <span class="due-label">${a.due}</span>
+      </div>
+    </div>`).join('');
+}
+
+function filterAssignments(filter) {
+  // Update tab states
+  ['all','pending','overdue'].forEach(f => {
+    const el = document.getElementById(`tab-${f}`);
+    el.setAttribute('aria-selected', f === filter ? 'true' : 'false');
+  });
+  renderAssignments(filter);
+}
+
+/* ============================================================
+   RENDER SCHEDULE
+============================================================ */
+function renderSchedule() {
+  const list = document.getElementById('schedule-list');
+  list.innerHTML = schedule.map(s => `
+    <div class="schedule-item ${s.done ? 'done' : ''} ${s.isNext ? 'next' : ''}" role="listitem"
+         aria-label="${s.subject} at ${s.time}${s.done ? ', completed' : ''}${s.isNext ? ', next class' : ''}">
+      <div class="schedule-time">
+        ${s.time}
+        <span>${s.end}</span>
+      </div>
+      <div class="schedule-dot" aria-hidden="true"></div>
+      <div class="schedule-body">
+        <div class="schedule-subject">${s.subject}</div>
+        <div class="schedule-detail">${s.room} · ${s.teacher}</div>
+      </div>
+      ${s.isNext ? '<span class="next-badge" aria-label="Next class">NEXT</span>' : ''}
+    </div>`).join('');
+}
+
+/* ============================================================
+   ASSIGNMENT DETAIL MODAL
+============================================================ */
+let currentModal = null;
+
+function openModal(id) {
+  const a = assignments.find(x => x.id === id);
+  if (!a) return;
+  currentModal = a;
+
+  const sc = subjectColor(a.subject);
+  const tagEl = document.getElementById('modal-subject-tag');
+  tagEl.textContent = a.subject;
+  tagEl.style.background = sc.bg;
+  tagEl.style.color       = sc.color;
+
+  document.getElementById('modal-title').textContent    = a.title;
+  document.getElementById('modal-due-text').textContent = 'Due ' + a.due;
+
+  const sbadge = document.getElementById('modal-status-badge');
+  sbadge.textContent  = a.status.charAt(0).toUpperCase() + a.status.slice(1);
+  sbadge.className    = `badge ${a.status}`;
+
+  const gradeSection = document.getElementById('modal-grade-section');
+  if (a.grade) {
+    gradeSection.classList.remove('hidden');
+    gradeSection.innerHTML = `
+      <div class="modal-grade-block">
+        <div class="modal-grade-letter ${gradeClass(a.grade.letter)}" aria-label="Grade ${a.grade.letter}">${a.grade.letter}</div>
+        <div class="modal-grade-info">
+          <div class="modal-grade-pct">${a.grade.pct}%</div>
+          <div class="modal-grade-feedback">"${a.grade.feedback}"</div>
+        </div>
+      </div>`;
+  } else {
+    gradeSection.classList.add('hidden');
+    gradeSection.innerHTML = '';
+  }
+
+  document.getElementById('modal-desc').textContent = a.desc;
+
+  const actions = document.getElementById('modal-actions');
+  if (a.status === 'submitted') {
+    actions.innerHTML = `
+      <button class="btn btn-secondary" onclick="showToast('info','Submission','Viewing submission details…');closeModal();">View Submission</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Close</button>`;
+  } else {
+    actions.innerHTML = `
+      <button class="btn btn-primary" onclick="handleSubmit(${a.id})">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2 7.5L6 11.5L13 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        ${a.status === 'overdue' ? 'Submit Late' : 'Submit'}
+      </button>
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>`;
+  }
+
+  const modal = document.getElementById('assignment-modal');
+  modal.setAttribute('aria-hidden', 'false');
+  modal.classList.add('open');
+  showBackdrop(() => closeModal());
+
+  // Trap focus to modal
+  setTimeout(() => modal.querySelector('button').focus(), 310);
+}
+
+function openAssignmentBySubject(name) {
+  const a = assignments.find(x => x.subject === name);
+  if (a) openModal(a.id);
+  else showToast('info', name, 'No assignments for this subject right now.');
+}
+
+function closeModal() {
+  const modal = document.getElementById('assignment-modal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  currentModal = null;
+  hideBackdrop();
+}
+
+function handleSubmit(id) {
+  const a = assignments.find(x => x.id === id);
+  if (!a) return;
+  a.status = 'submitted';
+  closeModal();
+  renderAssignments(currentAssignmentFilter);
+  showToast('success', 'Submitted!', `"${a.title}" has been submitted.`);
+  updatePendingCount();
+}
+
+function updatePendingCount() {
+  const pending = assignments.filter(a => a.status === 'pending' || a.status === 'overdue').length;
+  document.querySelectorAll('.nav-badge').forEach(el => { el.textContent = pending; });
+}
+
+/* ============================================================
+   NOTIFICATION PANEL
+============================================================ */
+let notifPanelOpen = false;
+
+function toggleNotifPanel() {
+  notifPanelOpen ? closeNotifPanel() : openNotifPanel();
+}
+
+function openNotifPanel() {
+  notifPanelOpen = true;
+  const panel = document.getElementById('notif-panel');
+  panel.classList.add('open');
+  panel.setAttribute('aria-hidden', 'false');
+  showBackdrop(() => closeNotifPanel());
+  renderNotifications(currentNotifFilter);
+  setTimeout(() => panel.querySelector('button').focus(), 310);
+}
+
+function closeNotifPanel() {
+  notifPanelOpen = false;
+  const panel = document.getElementById('notif-panel');
+  panel.classList.remove('open');
+  panel.setAttribute('aria-hidden', 'true');
+  hideBackdrop();
+}
+
+function renderNotifications(filter) {
+  currentNotifFilter = filter;
+  const list = document.getElementById('notif-list');
+  const filtered = filter === 'all'
+    ? notifData
+    : notifData.filter(n => n.type === filter);
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="padding:24px;text-align:center;color:var(--text-3);font-size:13px;">No notifications</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(n => `
+    <div class="notif-item ${n.unread ? 'unread' : ''}" id="notif-${n.id}" role="listitem"
+         aria-label="${n.title}${n.unread ? ', unread' : ''}">
+      ${n.unread ? '<div class="notif-unread-dot" aria-hidden="true"></div>' : '<div style="width:7px;flex-shrink:0"></div>'}
+      <div class="notif-icon-wrap" style="background:var(--surface-2)" aria-hidden="true">${n.icon}</div>
+      <div class="notif-body">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-desc">${n.desc}</div>
+        <div class="notif-time">${n.time}</div>
+      </div>
+      <button class="notif-dismiss" onclick="dismissNotif(${n.id},event)" aria-label="Dismiss notification: ${n.title}">×</button>
+    </div>`).join('');
+}
+
+function filterNotifs(filter) {
+  ['all','grades','assignments','announcements'].forEach(f => {
+    const key = f === 'announcements' ? 'announcements' : f;
+    const el = document.getElementById(`ntab-${key}`);
+    if (el) el.setAttribute('aria-selected', f === filter ? 'true' : 'false');
+  });
+  renderNotifications(filter);
+}
+
+function dismissNotif(id, e) {
+  e.stopPropagation();
+  notifData = notifData.filter(n => n.id !== id);
+  updateNotifDot();
+  renderNotifications(currentNotifFilter);
+}
+
+function markAllRead() {
+  notifData.forEach(n => { n.unread = false; });
+  updateNotifDot();
+  renderNotifications(currentNotifFilter);
+  showToast('success', 'All caught up', 'All notifications marked as read.');
+}
+
+function updateNotifDot() {
+  const unread = notifData.filter(n => n.unread).length;
+  const dot = document.getElementById('notif-dot');
+  if (unread === 0) {
+    dot.style.display = 'none';
+  } else {
+    dot.style.display = '';
+    dot.setAttribute('aria-label', `${unread} unread notification${unread !== 1 ? 's' : ''}`);
+  }
+  const btn = document.getElementById('notif-btn');
+  btn.setAttribute('aria-label', unread > 0
+    ? `Open notifications, ${unread} unread`
+    : 'Open notifications');
+}
+
+/* ============================================================
+   BACKDROP MANAGEMENT
+============================================================ */
+let backdropCallback = null;
+
+function showBackdrop(onClose) {
+  backdropCallback = onClose;
+  const bd = document.getElementById('backdrop');
+  bd.classList.add('visible');
+  bd.onclick = () => {
+    if (backdropCallback) backdropCallback();
+  };
+}
+
+function hideBackdrop() {
+  backdropCallback = null;
+  document.getElementById('backdrop').classList.remove('visible');
+}
+
+/* ============================================================
+   SIDEBAR (MOBILE)
+============================================================ */
+function toggleSidebar() {
+  const sidebar  = document.getElementById('sidebar');
+  const overlay  = document.getElementById('sidebar-overlay');
+  const isOpen   = sidebar.classList.contains('mobile-open');
+  if (isOpen) {
+    closeSidebar();
+  } else {
+    sidebar.classList.add('mobile-open');
+    overlay.classList.remove('hidden');
+    sidebar.querySelector('.nav-item').focus();
+  }
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebar-overlay').classList.add('hidden');
+}
+
+/* ============================================================
+   TOAST SYSTEM
+============================================================ */
+const TOAST_ICONS = { success: '✓', error: '✗', info: 'i' };
+const TOAST_DURATION = 4000;
+
+function showToast(type, title, message) {
+  const container = document.getElementById('toast-container');
+  const id = 'toast-' + Date.now();
+  const icon = TOAST_ICONS[type] || 'i';
+
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.id = id;
+  el.setAttribute('role', 'alert');
+  el.innerHTML = `
+    <span class="toast-icon" aria-hidden="true">${icon}</span>
+    <div class="toast-body">
+      <div class="toast-title">${title}</div>
+      ${message ? `<div class="toast-msg">${message}</div>` : ''}
+    </div>
+    <button class="toast-close" onclick="dismissToast('${id}')" aria-label="Dismiss notification">×</button>`;
+
+  container.appendChild(el);
+
+  const timer = setTimeout(() => dismissToast(id), TOAST_DURATION);
+  el._timer = timer;
+}
+
+function dismissToast(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  clearTimeout(el._timer);
+  el.classList.add('out');
+  el.addEventListener('animationend', () => el.remove(), { once: true });
+}
+
+/* ============================================================
+   KEYBOARD SHORTCUTS
+============================================================ */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('assignment-modal').classList.contains('open')) {
+      closeModal();
+    } else if (notifPanelOpen) {
+      closeNotifPanel();
+    } else if (document.getElementById('sidebar').classList.contains('mobile-open')) {
+      closeSidebar();
+    }
+  }
+});
+
+/* ============================================================
+   INITIAL RENDER
+============================================================ */
+renderGradeCards();
+renderAssignments('all');
+renderSchedule();
+updateNotifDot();
+
+/* Demo toast on load */
+setTimeout(() => {
+  showToast('info', 'Preview Mode', 'This is a static design prototype.');
+}, 1200);
+</script>
+
+</body>
+</html>
