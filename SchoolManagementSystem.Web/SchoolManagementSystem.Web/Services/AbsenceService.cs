@@ -13,7 +13,7 @@ namespace SchoolManagementSystem.Web.Services
             _context = context;
         }
 
-        public async Task AddAbsenceAsync(int studentId, int? subjectId, bool isExcused)
+        public async Task AddAbsenceAsync(int studentId, int? subjectId, bool isExcused, DateTime? date = null)
         {
             await ExecuteSafeAsync(async () =>
             {
@@ -22,11 +22,37 @@ namespace SchoolManagementSystem.Web.Services
                     StudentId = studentId,
                     SubjectId = subjectId,
                     IsExcused = isExcused,
-                    Date = DateTime.UtcNow
+                    Date = date ?? DateTime.UtcNow
                 };
                 _context.Absences.Add(absence);
                 await _context.SaveChangesAsync();
             }, $"Error occurred while adding absence for student {studentId}");
+        }
+
+        public async Task UpdateAbsenceAsync(int id, bool isExcused)
+        {
+            await ExecuteSafeAsync(async () =>
+            {
+                var absence = await _context.Absences.FindAsync(id);
+                if (absence != null)
+                {
+                    absence.IsExcused = isExcused;
+                    await _context.SaveChangesAsync();
+                }
+            }, $"Error occurred while updating absence {id}");
+        }
+
+        public async Task DeleteAbsenceAsync(int id)
+        {
+            await ExecuteSafeAsync(async () =>
+            {
+                var absence = await _context.Absences.FindAsync(id);
+                if (absence != null)
+                {
+                    _context.Absences.Remove(absence);
+                    await _context.SaveChangesAsync();
+                }
+            }, $"Error occurred while deleting absence {id}");
         }
 
         public async Task<List<Absence>> GetAbsencesForStudentAsync(int studentId)

@@ -19,7 +19,6 @@ namespace SchoolManagementSystem.Web.Data
 
         // Auth Tables
         public DbSet<LoginAttempt> LoginAttempts { get; set; }
-        public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Message> Messages { get; set; }
 
         public SchoolDbContext(DbContextOptions<SchoolDbContext> options)
@@ -61,6 +60,20 @@ namespace SchoolManagementSystem.Web.Data
                 .WithMany()
                 .HasForeignKey(m => m.ReceiverId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Student -> User FK
+            modelBuilder.Entity<Student>()
+                .HasOne<User>()
+                .WithOne()
+                .HasForeignKey<Student>(s => s.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Teacher -> User FK
+            modelBuilder.Entity<Teacher>()
+                .HasOne<User>()
+                .WithOne()
+                .HasForeignKey<Teacher>(t => t.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

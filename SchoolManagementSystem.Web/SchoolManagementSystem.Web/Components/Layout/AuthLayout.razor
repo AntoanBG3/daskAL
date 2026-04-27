@@ -1,0 +1,41 @@
+@inherits LayoutComponentBase
+
+<div class="auth-layout">
+    <div class="auth-container page-enter">
+        @Body
+    </div>
+</div>
+
+<style>
+    .auth-layout {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--bg-app) 0%, rgba(226, 232, 240, 0.5) 100%);
+        padding: 2rem;
+    }
+
+    .auth-container {
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .auth-accent-card {
+        background: #fff;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-hover);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .auth-accent-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: linear-gradient(90deg, var(--primary), #818CF8);
+    }
+</style>

@@ -4,6 +4,7 @@
 @using SchoolManagementSystem.Web.DTOs
 @using SchoolManagementSystem.Web.Models
 @using SchoolManagementSystem.Web.Services
+@using SchoolManagementSystem.Web.Mappers
 @using SchoolManagementSystem.Web.Client.Components
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IStudentService StudentService
@@ -50,10 +51,6 @@
                     </div>
                     <div class="col-md-8">
                         <h5 class="border-bottom pb-2 mb-3">Details</h5>
-                        <div class="row mb-3">
-                            <div class="col-sm-4 fw-bold">User ID:</div>
-                            <div class="col-sm-8 text-muted">@CurrentStudent.UserId</div>
-                        </div>
                         <div class="row mb-3">
                             <div class="col-sm-4 fw-bold">Student ID:</div>
                             <div class="col-sm-8">@CurrentStudent.Id</div>
@@ -114,30 +111,11 @@
                     // I need to map them.
 
                     var entries = await ScheduleService.GetScheduleForClassAsync(CurrentStudent.SchoolClassId.Value);
-                    MySchedule = entries.Select(ToDTO).ToList();
+                    MySchedule = entries.Select(ScheduleEntryMapper.ToDTO).ToList();
                 }
             }
         }
         IsLoading = false;
     }
 
-    private static ScheduleEntryDTO ToDTO(ScheduleEntry entry)
-    {
-        return new ScheduleEntryDTO
-        {
-            Id = entry.Id,
-            SchoolClassId = entry.SchoolClassId,
-            ClassName = entry.ClassSubject?.SchoolClass?.Name ?? "Unknown Class",
-            SubjectId = entry.SubjectId,
-            SubjectName = entry.ClassSubject?.Subject?.Name ?? "Unknown Subject",
-            TeacherId = entry.ClassSubject?.Subject?.TeacherId,
-            TeacherName = entry.ClassSubject?.Subject?.Teacher != null
-                ? $"{entry.ClassSubject.Subject.Teacher.FirstName} {entry.ClassSubject.Subject.Teacher.LastName}"
-                : "No Teacher",
-            DayOfWeek = entry.DayOfWeek,
-            StartTime = entry.StartTime,
-            EndTime = entry.EndTime,
-            RoomNumber = entry.RoomNumber
-        };
-    }
 }

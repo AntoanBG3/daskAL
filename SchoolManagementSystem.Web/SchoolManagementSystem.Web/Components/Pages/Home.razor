@@ -452,9 +452,14 @@
 
     private async Task LoadAdminStats()
     {
-        TotalStudents = await DbContext.Students.CountAsync();
-        TotalTeachers = await DbContext.Teachers.CountAsync();
-        TotalClasses = await DbContext.SchoolClasses.CountAsync();
+        var allStudents = await StudentService.GetAllStudentsAsync();
+        TotalStudents = allStudents.Count;
+
+        var allTeachers = await TeacherService.GetAllTeachersAsync();
+        TotalTeachers = allTeachers.Count;
+
+        var allClasses = await ClassService.GetAllClassesAsync();
+        TotalClasses = allClasses.Count;
 
         var sevenDaysAgo = DateTime.Today.AddDays(-6);
         var absences = await DbContext.Absences

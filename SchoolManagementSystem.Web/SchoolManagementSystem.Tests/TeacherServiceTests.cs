@@ -43,7 +43,7 @@ namespace SchoolManagementSystem.Tests
         {
             using (var context = CreateContext())
             {
-                var service = new TeacherService(context, _mockUserManager.Object, _mockLogger.Object);
+                var service = new TeacherService(context, _mockLogger.Object, _mockUserManager.Object);
                 var model = new TeacherViewModel { FirstName = "T", LastName = "User" };
 
                 await service.AddTeacherAsync(model, "user-123");
@@ -68,7 +68,7 @@ namespace SchoolManagementSystem.Tests
 
             using (var context = CreateContext())
             {
-                var service = new TeacherService(context, _mockUserManager.Object, _mockLogger.Object);
+                var service = new TeacherService(context, _mockLogger.Object, _mockUserManager.Object);
                 var result = await service.GetTeacherByIdAsync(1);
 
                 Assert.NotNull(result);
@@ -87,7 +87,7 @@ namespace SchoolManagementSystem.Tests
 
             using (var context = CreateContext())
             {
-                var service = new TeacherService(context, _mockUserManager.Object, _mockLogger.Object);
+                var service = new TeacherService(context, _mockLogger.Object, _mockUserManager.Object);
                 var model = new TeacherViewModel { Id = 2, FirstName = "New", LastName = "Name" };
                 await service.UpdateTeacherAsync(model);
             }
@@ -111,7 +111,7 @@ namespace SchoolManagementSystem.Tests
 
             using (var context = CreateContext())
             {
-                var service = new TeacherService(context, _mockUserManager.Object, _mockLogger.Object);
+                var service = new TeacherService(context, _mockLogger.Object, _mockUserManager.Object);
                 await service.DeleteTeacherAsync(3);
             }
 

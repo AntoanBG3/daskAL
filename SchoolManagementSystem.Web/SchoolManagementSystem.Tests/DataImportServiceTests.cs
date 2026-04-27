@@ -131,7 +131,7 @@ namespace SchoolManagementSystem.Tests
                 Assert.Equal("10A", schoolClass.Name);
 
                 // Student linked to class
-                var student = await context.Students.Include(s => s.Grades).FirstAsync();
+                var student = await context.Students.Include(s => s.Grades).ThenInclude(g => g.Subject).FirstAsync();
                 Assert.Equal("Alice", student.FirstName);
                 Assert.Equal(schoolClass.Id, student.SchoolClassId);
 
@@ -139,7 +139,7 @@ namespace SchoolManagementSystem.Tests
                 Assert.Equal(2, student.Grades.Count);
                 Assert.All(student.Grades, g =>
                 {
-                    Assert.Equal("Science", g.SubjectName);
+                    Assert.Equal("Science", g.Subject?.Name);
                     Assert.Equal(subject.Id, g.SubjectId);
                 });
             }

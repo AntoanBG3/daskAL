@@ -46,6 +46,10 @@
             document.documentElement.setAttribute('data-sidebar-theme', theme);
             localStorage.setItem('sidebarTheme', theme);
         };
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
     </script>
 </body>
 

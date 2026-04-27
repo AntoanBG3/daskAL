@@ -53,9 +53,9 @@ namespace SchoolManagementSystem.Tests
 
             using (var context = CreateContext())
             {
-                var grade = await context.Grades.FirstOrDefaultAsync();
+                var grade = await context.Grades.Include(g => g.Subject).FirstOrDefaultAsync();
                 Assert.NotNull(grade);
-                Assert.Equal("Math", grade.SubjectName);
+                Assert.Equal("Math", grade.Subject?.Name);
                 Assert.Equal(5, grade.Value);
             }
         }
@@ -65,9 +65,13 @@ namespace SchoolManagementSystem.Tests
         {
             using (var context = CreateContext())
             {
-                context.Grades.Add(new Grade { Id = 1, StudentId = 1, SubjectName = "Math", Value = 5 });
-                context.Grades.Add(new Grade { Id = 2, StudentId = 1, SubjectName = "Science", Value = 4 });
-                context.Grades.Add(new Grade { Id = 3, StudentId = 2, SubjectName = "History", Value = 6 }); // Other student
+                context.Subjects.AddRange(
+                    new Subject { Id = 10, Name = "Math" },
+                    new Subject { Id = 11, Name = "Science" },
+                    new Subject { Id = 12, Name = "History" });
+                context.Grades.Add(new Grade { Id = 1, StudentId = 1, SubjectId = 10, Value = 5 });
+                context.Grades.Add(new Grade { Id = 2, StudentId = 1, SubjectId = 11, Value = 4 });
+                context.Grades.Add(new Grade { Id = 3, StudentId = 2, SubjectId = 12, Value = 6 }); // Other student
                 await context.SaveChangesAsync();
             }
 

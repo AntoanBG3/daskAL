@@ -36,5 +36,6 @@ public class RegisterRequest
     public string LastName { get; set; } = string.Empty;
 
     [Required]
-    public DateTime DateOfBirth { get; set; } = DateTime.Today.AddYears(-15);
+    [DataType(DataType.Date)]
+    public DateTime DateOfBirth { get; set; }
 }

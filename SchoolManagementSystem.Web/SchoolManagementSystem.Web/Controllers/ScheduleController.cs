@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchoolManagementSystem.Web.DTOs;
+using SchoolManagementSystem.Web.Mappers;
 using SchoolManagementSystem.Web.Models;
 using SchoolManagementSystem.Web.Services;
 
@@ -21,6 +22,7 @@ namespace SchoolManagementSystem.Web.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Teacher")]
         public async Task<IActionResult> AddScheduleEntry([FromBody] AddScheduleEntryRequest request)
         {
             if (request.StartTime >= request.EndTime)
@@ -61,7 +63,7 @@ namespace SchoolManagementSystem.Web.Controllers
             try
             {
                 var schedule = await _scheduleService.GetScheduleForClassAsync(schoolClassId);
-                var dtos = schedule.Select(ToDTO).ToList();
+                var dtos = schedule.Select(ScheduleEntryMapper.ToDTO).ToList();
                 return Ok(dtos);
             }
             catch (Exception ex)
@@ -77,7 +79,7 @@ namespace SchoolManagementSystem.Web.Controllers
             try
             {
                 var schedule = await _scheduleService.GetScheduleForTeacherAsync(teacherId);
-                var dtos = schedule.Select(ToDTO).ToList();
+                var dtos = schedule.Select(ScheduleEntryMapper.ToDTO).ToList();
                 return Ok(dtos);
             }
             catch (Exception ex)
@@ -85,26 +87,6 @@ namespace SchoolManagementSystem.Web.Controllers
                 _logger.LogError(ex, "Error fetching schedule for teacher {TeacherId}", teacherId);
                 return StatusCode(500, "An internal server error occurred.");
             }
-        }
-
-        private static ScheduleEntryDTO ToDTO(ScheduleEntry entry)
-        {
-            return new ScheduleEntryDTO
-            {
-                Id = entry.Id,
-                SchoolClassId = entry.SchoolClassId,
-                ClassName = entry.ClassSubject?.SchoolClass?.Name ?? "Unknown Class",
-                SubjectId = entry.SubjectId,
-                SubjectName = entry.ClassSubject?.Subject?.Name ?? "Unknown Subject",
-                TeacherId = entry.ClassSubject?.Subject?.TeacherId,
-                TeacherName = entry.ClassSubject?.Subject?.Teacher != null
-                    ? $"{entry.ClassSubject.Subject.Teacher.FirstName} {entry.ClassSubject.Subject.Teacher.LastName}"
-                    : "No Teacher",
-                DayOfWeek = entry.DayOfWeek,
-                StartTime = entry.StartTime,
-                EndTime = entry.EndTime,
-                RoomNumber = entry.RoomNumber
-            };
         }
     }
 }

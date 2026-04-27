@@ -2,9 +2,11 @@ using Xunit;
 using Moq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
 using SchoolManagementSystem.Web.Services;
 using SchoolManagementSystem.Web.Data;
 using SchoolManagementSystem.Web.Models.ViewModels;
+using SchoolManagementSystem.Web.Models.Auth;
 using System.Threading.Tasks;
 using System.Linq;
 using SchoolManagementSystem.Web.Models;
@@ -17,6 +19,7 @@ namespace SchoolManagementSystem.Tests
     {
         private DbContextOptions<SchoolDbContext> _options;
         private Mock<ILogger<StudentService>> _mockLogger;
+        private Mock<UserManager<User>> _mockUserManager;
 
         public StudentServiceTests()
         {
@@ -25,6 +28,9 @@ namespace SchoolManagementSystem.Tests
                 .Options;
             
             _mockLogger = new Mock<ILogger<StudentService>>();
+
+            var store = new Mock<IUserStore<User>>();
+            _mockUserManager = new Mock<UserManager<User>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
         }
 
         private SchoolDbContext CreateContext()
@@ -45,7 +51,7 @@ namespace SchoolManagementSystem.Tests
 
             using (var context = CreateContext())
             {
-                var service = new StudentService(context, _mockLogger.Object);
+                var service = new StudentService(context, _mockLogger.Object, _mockUserManager.Object);
 
                 // Act
                 var result = await service.GetAllStudentsAsync();
@@ -72,7 +78,7 @@ namespace SchoolManagementSystem.Tests
 
             using (var context = CreateContext())
             {
-                var service = new StudentService(context, _mockLogger.Object);
+                var service = new StudentService(context, _mockLogger.Object, _mockUserManager.Object);
 
                 // Act
                 await service.AddStudentAsync(studentModel, 1);
@@ -95,7 +101,7 @@ namespace SchoolManagementSystem.Tests
         {
             using (var context = CreateContext())
             {
-                var service = new StudentService(context, _mockLogger.Object);
+                var service = new StudentService(context, _mockLogger.Object, _mockUserManager.Object);
                 var model = new StudentViewModel
                 {
                     FirstName = "Bad",
@@ -114,7 +120,7 @@ namespace SchoolManagementSystem.Tests
         {
             using (var context = CreateContext())
             {
-                var service = new StudentService(context, _mockLogger.Object);
+                var service = new StudentService(context, _mockLogger.Object, _mockUserManager.Object);
                 var model = new StudentViewModel
                 {
                     FirstName = "Good",
