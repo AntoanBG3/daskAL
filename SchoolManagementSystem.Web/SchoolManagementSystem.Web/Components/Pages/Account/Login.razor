@@ -100,8 +100,7 @@
             var (success, message) = await AuthService.LoginAsync(TargetModel);
             if (success)
             {
-                var redirectUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : Uri.UnescapeDataString(ReturnUrl);
-                HttpContext?.Response.Redirect(redirectUrl);
+                HttpContext?.Response.Redirect(GetSafeRedirectUrl(ReturnUrl));
             }
             else
             {
@@ -117,5 +116,23 @@
         {
             IsLoading = false;
         }
+    }
+
+    private static string GetSafeRedirectUrl(string? returnUrl)
+    {
+        if (string.IsNullOrWhiteSpace(returnUrl))
+        {
+            return "/";
+        }
+
+        var decodedUrl = Uri.UnescapeDataString(returnUrl);
+        if (decodedUrl.StartsWith('/') &&
+            !decodedUrl.StartsWith("//", StringComparison.Ordinal) &&
+            !decodedUrl.StartsWith("/\\", StringComparison.Ordinal))
+        {
+            return decodedUrl;
+        }
+
+        return "/";
     }
 }

@@ -11,7 +11,7 @@ namespace SchoolManagementSystem.Web.Services
             _logger = logger;
         }
 
-        protected async Task<TResult> ExecuteSafeAsync<TResult>(Func<Task<TResult>> action, string errorMessage, TResult defaultValue = default)
+        protected async Task<TResult> ExecuteSafeAsync<TResult>(Func<Task<TResult>> action, string errorMessage, TResult defaultValue)
         {
             try
             {

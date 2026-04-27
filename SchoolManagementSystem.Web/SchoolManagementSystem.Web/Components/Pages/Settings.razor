@@ -9,6 +9,7 @@
 @inject IAuthService AuthService
 @inject UserManager<User> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ILogger<Settings> Logger
 
 <PageTitle>Settings - daskAL</PageTitle>
 
@@ -158,8 +159,9 @@
                 }
                 StateHasChanged();
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.LogDebug(ex, "Unable to read saved sidebar theme from local storage.");
                 currentTheme = "light";
                 StateHasChanged();
             }
@@ -219,6 +221,7 @@
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "An error occurred while uploading profile picture for user {UserId}.", CurrentUser?.Id);
             UploadErrorMessage = "An error occurred while uploading: " + ex.Message;
             ShowUploadError = true;
         }

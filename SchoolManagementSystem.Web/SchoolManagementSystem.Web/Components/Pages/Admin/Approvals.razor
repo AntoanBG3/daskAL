@@ -162,7 +162,7 @@
             {
                 UserId = u.Id,
                 FullName = $"{u.FirstName} {u.LastName}",
-                Email = u.Email,
+                Email = u.Email ?? string.Empty,
                 RegistrationDate = u.CreatedAt,
                 DateOfBirth = student?.DateOfBirth,
                 Role = "Student" // Assumed for now as only students self-register
@@ -194,7 +194,7 @@
             {
                 UserId = u.Id,
                 FullName = $"{u.FirstName} {u.LastName}",
-                Email = u.Email,
+                Email = u.Email ?? string.Empty,
                 CurrentPictureBase64 = currentBase64,
                 PendingPictureBase64 = pendingBase64
             });

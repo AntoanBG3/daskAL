@@ -1,8 +1,10 @@
 @page "/search"
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using SchoolManagementSystem.Web.Data
 @using SchoolManagementSystem.Web.Models
 @using SchoolManagementSystem.Web.Models.ViewModels
+@attribute [Authorize]
 @inject SchoolDbContext DbContext
 @inject NavigationManager NavigationManager
 

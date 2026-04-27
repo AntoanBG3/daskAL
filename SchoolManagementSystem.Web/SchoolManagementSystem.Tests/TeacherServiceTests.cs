@@ -95,6 +95,7 @@ namespace SchoolManagementSystem.Tests
             using (var context = CreateContext())
             {
                 var teacher = await context.Teachers.FindAsync(2);
+                Assert.NotNull(teacher);
                 Assert.Equal("New", teacher.FirstName);
             }
         }

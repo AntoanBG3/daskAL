@@ -1,0 +1,38 @@
+<div class="ui-empty-state @CssClass">
+    @if (!string.IsNullOrWhiteSpace(Icon))
+    {
+        <div class="ui-empty-state__icon" aria-hidden="true">
+            <i class="@Icon"></i>
+        </div>
+    }
+    <div>
+        <h2>@Title</h2>
+        @if (!string.IsNullOrWhiteSpace(Message))
+        {
+            <p>@Message</p>
+        }
+    </div>
+    @if (ChildContent is not null)
+    {
+        <div class="ui-empty-state__actions">
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Icon { get; set; } = "bi bi-inbox";
+
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Message { get; set; }
+
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

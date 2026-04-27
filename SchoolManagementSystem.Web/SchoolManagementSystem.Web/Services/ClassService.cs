@@ -27,7 +27,8 @@ namespace SchoolManagementSystem.Web.Services
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    AssignedSubjects = c.ClassSubjects.Select(cs => cs.Subject?.Name ?? "Unknown").ToList()
+                    AssignedSubjects = c.ClassSubjects.Select(cs => cs.Subject?.Name ?? "Unknown").ToList(),
+                    AssignedSubjectIds = c.ClassSubjects.Select(cs => cs.SubjectId).ToList()
                 }).ToList();
             }, "Error occurred while retrieving all classes.", new List<SchoolClassViewModel>());
         }
@@ -47,7 +48,8 @@ namespace SchoolManagementSystem.Web.Services
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    AssignedSubjects = c.ClassSubjects.Select(cs => cs.Subject?.Name ?? "Unknown").ToList()
+                    AssignedSubjects = c.ClassSubjects.Select(cs => cs.Subject?.Name ?? "Unknown").ToList(),
+                    AssignedSubjectIds = c.ClassSubjects.Select(cs => cs.SubjectId).ToList()
                 };
             }, $"Error occurred while retrieving class with ID {id}", null);
         }

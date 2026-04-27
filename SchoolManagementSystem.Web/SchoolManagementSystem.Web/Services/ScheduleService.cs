@@ -49,8 +49,10 @@ namespace SchoolManagementSystem.Web.Services
                     {
                         var teacherConflict = await _context.ScheduleEntries
                             .Include(se => se.ClassSubject)
-                            .ThenInclude(cs => cs.Subject)
+                            .ThenInclude(cs => cs!.Subject)
                             .AnyAsync(se =>
+                                se.ClassSubject != null &&
+                                se.ClassSubject.Subject != null &&
                                 se.ClassSubject.Subject.TeacherId == teacherId.Value &&
                                 se.DayOfWeek == dayOfWeek &&
                                 se.StartTime < endTime && se.EndTime > startTime);
@@ -118,10 +120,10 @@ namespace SchoolManagementSystem.Web.Services
             {
                 return await _context.ScheduleEntries
                     .Include(se => se.ClassSubject)
-                        .ThenInclude(cs => cs.Subject)
-                        .ThenInclude(s => s.Teacher)
+                        .ThenInclude(cs => cs!.Subject)
+                        .ThenInclude(s => s!.Teacher)
                     .Include(se => se.ClassSubject)
-                        .ThenInclude(cs => cs.SchoolClass)
+                        .ThenInclude(cs => cs!.SchoolClass)
                     .Where(se => se.SchoolClassId == schoolClassId)
                     .OrderBy(se => se.DayOfWeek)
                     .ThenBy(se => se.StartTime)
@@ -135,11 +137,14 @@ namespace SchoolManagementSystem.Web.Services
             {
                 return await _context.ScheduleEntries
                     .Include(se => se.ClassSubject)
-                        .ThenInclude(cs => cs.Subject)
-                        .ThenInclude(s => s.Teacher)
+                        .ThenInclude(cs => cs!.Subject)
+                        .ThenInclude(s => s!.Teacher)
                     .Include(se => se.ClassSubject)
-                        .ThenInclude(cs => cs.SchoolClass)
-                    .Where(se => se.ClassSubject.Subject.TeacherId == teacherId)
+                        .ThenInclude(cs => cs!.SchoolClass)
+                    .Where(se =>
+                        se.ClassSubject != null &&
+                        se.ClassSubject.Subject != null &&
+                        se.ClassSubject.Subject.TeacherId == teacherId)
                     .OrderBy(se => se.DayOfWeek)
                     .ThenBy(se => se.StartTime)
                     .ToListAsync();

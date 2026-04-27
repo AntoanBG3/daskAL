@@ -110,7 +110,7 @@ namespace SchoolManagementSystem.Web.Services
                                  var result = await _userManager.ResetPasswordAsync(user, token, model.Password);
                                  if (!result.Succeeded)
                                  {
-                                     throw new Exception($"Failed to reset password: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                                     throw new InvalidOperationException($"Failed to reset password: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                                  }
                              }
                          }
@@ -136,7 +136,7 @@ namespace SchoolManagementSystem.Web.Services
                          }
                          else
                          {
-                              throw new Exception($"Failed to create user account: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                              throw new InvalidOperationException($"Failed to create user account: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                          }
                     }
 

@@ -72,6 +72,26 @@ namespace SchoolManagementSystem.Tests
         }
 
         [Fact]
+        public async Task GetClassByIdAsync_ReturnsAssignedSubjectIds()
+        {
+            using (var context = CreateContext())
+            {
+                context.SchoolClasses.Add(new SchoolClass { Id = 1, Name = "10A" });
+                context.Subjects.Add(new Subject { Id = 101, Name = "Math" });
+                context.Subjects.Add(new Subject { Id = 102, Name = "Physics" });
+                context.ClassSubjects.Add(new ClassSubject { SchoolClassId = 1, SubjectId = 101 });
+                context.ClassSubjects.Add(new ClassSubject { SchoolClassId = 1, SubjectId = 102 });
+                await context.SaveChangesAsync();
+
+                var service = new ClassService(context, _mockLogger.Object);
+                var result = await service.GetClassByIdAsync(1);
+
+                Assert.NotNull(result);
+                Assert.Equal(new[] { 101, 102 }, result.AssignedSubjectIds.OrderBy(id => id));
+            }
+        }
+
+        [Fact]
         public async Task DeleteClassAsync_DeletesClass()
         {
             using (var context = CreateContext())

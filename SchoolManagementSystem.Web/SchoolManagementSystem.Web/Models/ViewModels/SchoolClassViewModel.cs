@@ -10,5 +10,6 @@ namespace SchoolManagementSystem.Web.Models.ViewModels
         public string Name { get; set; } = string.Empty;
 
         public List<string> AssignedSubjects { get; set; } = new();
+        public List<int> AssignedSubjectIds { get; set; } = new();
     }
 }

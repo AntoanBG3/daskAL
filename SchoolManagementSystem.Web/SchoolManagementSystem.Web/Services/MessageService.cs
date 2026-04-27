@@ -42,7 +42,10 @@ namespace SchoolManagementSystem.Web.Services
             await ExecuteSafeAsync(async () =>
             {
                 var receiver = await _context.Users.FirstOrDefaultAsync(u => u.Email == receiverEmail);
-                if (receiver == null) throw new Exception("Receiver not found");
+                if (receiver == null)
+                {
+                    throw new InvalidOperationException("Receiver not found.");
+                }
     
                 var message = new Message
                 {

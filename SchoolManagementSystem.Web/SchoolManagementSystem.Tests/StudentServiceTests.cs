@@ -84,6 +84,7 @@ namespace SchoolManagementSystem.Tests
                 var count = await context.Students.CountAsync();
                 Assert.Equal(1, count);
                 var savedStudent = await context.Students.FirstOrDefaultAsync();
+                Assert.NotNull(savedStudent);
                 Assert.Equal("New", savedStudent.FirstName);
                 Assert.Equal(1, savedStudent.SchoolClassId);
             }
@@ -128,6 +129,7 @@ namespace SchoolManagementSystem.Tests
             using (var context = CreateContext())
             {
                 var savedStudent = await context.Students.FirstOrDefaultAsync();
+                Assert.NotNull(savedStudent);
                 Assert.Equal(99, savedStudent.SchoolClassId);
             }
         }

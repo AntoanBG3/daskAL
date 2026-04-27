@@ -15,14 +15,15 @@
 @inject IMessageService MessageService
 @inject SchoolDbContext DbContext
 @inject IJSRuntime JSRuntime
+@inject ILogger<Home> Logger
 
 <PageTitle>Dashboard - daskAL</PageTitle>
 
 <AuthorizeView>
     <Authorized>
-        <div class="mb-5 d-flex align-items-center justify-content-between">
+        <div class="dashboard-header">
             <div>
-                <h1 class="display-6 fw-bold mb-1">
+                <h1>
                     @Greeting, <span class="text-gradient">@context.User.Identity?.Name</span>
                 </h1>
                 <p class="text-muted mb-0">Here's what's happening at your school today.</p>
@@ -33,55 +34,59 @@
         </div>
 
         <AuthorizeView Roles="Admin" Context="adminContext">
-            <!-- Bento Box Grid Layout -->
             <div class="admin-dashboard-grid">
-
-                <!-- Quick Stats - Large Span -->
-                <div class="card-premium grid-span-2">
-                    <div class="d-flex align-items-center justify-content-between mb-4">
-                        <div class="card-icon bg-primary-soft text-primary">
+                <div class="card-premium metric-card grid-span-1">
+                    <div class="metric-card__top">
+                        <div class="card-icon" style="background: var(--primary-soft); color: var(--primary);">
                             <i class="bi bi-people-fill"></i>
                         </div>
-                        <span class="badge bg-light text-dark rounded-pill">Total</span>
+                        <span class="stat-label">Students</span>
                     </div>
-                    <div>
-                        <h2 class="stat-value">@TotalStudents</h2>
-                        <p class="stat-label">Active Students</p>
-                    </div>
-                    <div class="mt-auto pt-3 border-top border-light">
-                        <a href="students" class="btn btn-sm btn-outline w-100">Manage Students</a>
-                    </div>
+                    <h2 class="stat-value">@TotalStudents</h2>
+                    <p class="metric-card__meta">Active students</p>
                 </div>
 
-                <div class="card-premium grid-span-1">
-                    <div class="card-icon" style="background: #FEF3C7; color: #D97706;">
-                        <i class="bi bi-person-badge-fill"></i>
+                <div class="card-premium metric-card grid-span-1">
+                    <div class="metric-card__top">
+                        <div class="card-icon" style="background: var(--warning-soft); color: var(--warning);">
+                            <i class="bi bi-person-badge-fill"></i>
+                        </div>
+                        <span class="stat-label">Teachers</span>
                     </div>
                     <h2 class="stat-value">@TotalTeachers</h2>
-                    <p class="stat-label">Teachers</p>
-                    <div class="mt-auto">
-                        <a href="teachers" class="text-decoration-none small fw-bold">View List &rarr;</a>
-                    </div>
+                    <p class="metric-card__meta">Teaching staff</p>
                 </div>
 
-                <div class="card-premium grid-span-1">
-                    <div class="card-icon" style="background: #DBEAFE; color: #2563EB;">
-                        <i class="bi bi-building"></i>
+                <div class="card-premium metric-card grid-span-1">
+                    <div class="metric-card__top">
+                        <div class="card-icon" style="background: #DBEAFE; color: #2563EB;">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <span class="stat-label">Classes</span>
                     </div>
                     <h2 class="stat-value">@TotalClasses</h2>
-                    <p class="stat-label">Classes</p>
-                    <div class="mt-auto">
-                        <a href="classes" class="text-decoration-none small fw-bold">Manage &rarr;</a>
-                    </div>
+                    <p class="metric-card__meta">Configured classes</p>
                 </div>
 
-                <!-- Chart Placeholder - Span 2 columns, 2 rows -->
-                <div class="card-premium grid-span-2 grid-row-2">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title">Attendance Overview (Last 7 Days)</h5>
+                <div class="card-premium metric-card grid-span-1">
+                    <div class="metric-card__top">
+                        <div class="card-icon" style="background: var(--danger-soft); color: var(--danger);">
+                            <i class="bi bi-calendar-x"></i>
+                        </div>
+                        <span class="stat-label">Absences</span>
                     </div>
-                    <div class="flex-grow-1 d-flex align-items-end justify-content-center bg-light rounded-3 p-3 position-relative overflow-hidden">
-                        <!-- Dynamic CSS Bar Chart -->
+                    <h2 class="stat-value">@RecentAbsences.Sum(a => a.Count)</h2>
+                    <p class="metric-card__meta">Recorded in the last 7 days</p>
+                </div>
+            </div>
+
+            <div class="dashboard-panels">
+                <div class="card-premium">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Attendance Overview</h5>
+                        <span class="badge-soft">Last 7 days</span>
+                    </div>
+                    <div class="flex-grow-1 d-flex align-items-end justify-content-center bg-light rounded-3 p-3 position-relative overflow-hidden" style="min-height: 260px;">
                         <div class="d-flex justify-content-around w-100 h-100 align-items-end" style="gap: 8px;">
                             @foreach (var day in RecentAbsences)
                             {
@@ -104,21 +109,34 @@
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
-                <div class="card-premium grid-span-2">
-                    <h5 class="card-title mb-3">Quick Actions</h5>
-                    <div class="d-grid gap-2 grid-cols-2" style="grid-template-columns: 1fr 1fr; display: grid;">
-                        <a href="subjects" class="btn btn-outline text-start p-3 h-100 d-flex flex-column align-items-start justify-content-center">
-                            <i class="bi bi-book mb-2 fs-4 text-danger"></i>
-                            <span>Subjects</span>
+                <div class="card-premium">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Operational shortcuts</h5>
+                        <span class="text-muted small">@DateTime.Now.ToString("MMM dd")</span>
+                    </div>
+                    <div class="activity-list">
+                        <a href="students" class="activity-item text-decoration-none">
+                            <span class="activity-dot"></span>
+                            <span class="fw-semibold text-dark">Manage students</span>
+                            <span class="ms-auto text-muted small">@TotalStudents total</span>
                         </a>
-                        <a href="grades" class="btn btn-outline text-start p-3 h-100 d-flex flex-column align-items-start justify-content-center">
-                            <i class="bi bi-graph-up mb-2 fs-4 text-success"></i>
-                            <span>Grades</span>
+                        <a href="teachers" class="activity-item text-decoration-none">
+                            <span class="activity-dot" style="background: var(--warning);"></span>
+                            <span class="fw-semibold text-dark">Review teachers</span>
+                            <span class="ms-auto text-muted small">@TotalTeachers total</span>
+                        </a>
+                        <a href="classes" class="activity-item text-decoration-none">
+                            <span class="activity-dot" style="background: var(--success);"></span>
+                            <span class="fw-semibold text-dark">Update classes</span>
+                            <span class="ms-auto text-muted small">@TotalClasses total</span>
+                        </a>
+                        <a href="messages" class="activity-item text-decoration-none">
+                            <span class="activity-dot" style="background: var(--info);"></span>
+                            <span class="fw-semibold text-dark">Open messages</span>
+                            <span class="ms-auto text-muted small">Inbox</span>
                         </a>
                     </div>
                 </div>
-
             </div>
         </AuthorizeView>
 
@@ -356,7 +374,7 @@
 
 @code {
     [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    private Task<AuthenticationState>? authenticationStateTask { get; set; }
 
     private string Greeting = "Good Morning";
 
@@ -403,12 +421,21 @@
                 };
                 StateHasChanged();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Logger.LogDebug(ex, "Unable to determine client-local greeting time.");
+            }
         }
     }
 
     protected override async Task OnInitializedAsync()
     {
+        if (authenticationStateTask is null)
+        {
+            Logger.LogWarning("Authentication state was not available for the dashboard.");
+            return;
+        }
+
         var authState = await authenticationStateTask;
         var user = authState.User;
 
@@ -484,7 +511,10 @@
                 StudentUnreadMessages = messages.Count(m => !m.IsRead);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load student dashboard data for user {UserId}", userId);
+        }
         finally { StudentIsLoading = false; }
     }
 

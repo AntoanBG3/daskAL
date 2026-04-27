@@ -13,143 +13,151 @@
 @inject UserManager<User> UserManager
 @attribute [Authorize]
 
-<PageTitle>Messages</PageTitle>
+<PageTitle>Messages - daskAL</PageTitle>
 
-<div class="container-fluid">
-    <div class="page-header d-flex align-items-start justify-content-between">
-        <div>
-            <h2><i class="bi bi-envelope-fill"></i> Messages</h2>
-            <p class="page-subtitle">Send and receive messages within the school.</p>
-        </div>
-        @if (ActiveTab != "compose")
-        {
-            <button class="btn btn-primary" @onclick='() => SetTab("compose")'>
-                <i class="bi bi-pencil-square me-2"></i>New Message
-            </button>
-        }
-    </div>
+<PageHeader Title="Messages"
+            Icon="bi bi-envelope-fill"
+            Subtitle="Threaded inbox with recipient preselection and an explicit compose state.">
+    <Actions>
+        <button class="btn btn-primary" @onclick='() => SetTab("compose")'>
+            <i class="bi bi-pencil-square" aria-hidden="true"></i> New Message
+        </button>
+    </Actions>
+</PageHeader>
 
-    <ul class="nav nav-pills-modern mb-4 gap-2">
-        <li class="nav-item">
-            <button class="nav-link @(ActiveTab == "inbox" ? "active" : "")" @onclick='() => SetTab("inbox")'>Inbox</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link @(ActiveTab == "sent" ? "active" : "")" @onclick='() => SetTab("sent")'>Sent</button>
-        </li>
-        @if (ActiveTab == "compose")
-        {
-            <li class="nav-item">
-                <button class="nav-link active">Compose</button>
-            </li>
-        }
-    </ul>
-
-    @if (IsLoading)
-    {
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+@if (IsLoading)
+{
+    <LoadingState Message="Loading messages..." />
+}
+else
+{
+    <div class="message-workspace">
+        <aside class="message-list-panel" aria-label="Message folders">
+            <div class="message-list-header">
+                <div class="message-tabs" role="tablist" aria-label="Message folder">
+                    <button type="button" class="message-tab @(ActiveTab == "inbox" ? "active" : "")" @onclick='() => SetTab("inbox")'>Inbox</button>
+                    <button type="button" class="message-tab @(ActiveTab == "sent" ? "active" : "")" @onclick='() => SetTab("sent")'>Sent</button>
+                </div>
+                <label for="message-search" class="visually-hidden">Search messages</label>
+                <input id="message-search"
+                       class="form-control"
+                       placeholder="Search messages..."
+                       @bind="MessageSearch"
+                       @bind:event="oninput" />
             </div>
-        </div>
-    }
-    else
-    {
-        @if (ActiveTab == "inbox")
-        {
-            <div class="list-group shadow-sm" style="border-radius: var(--border-radius-md); overflow: hidden;">
-                @if (InboxMessages.Any())
+
+            <div class="message-list">
+                @if (FilteredMessages.Any())
                 {
-                    @foreach (var msg in InboxMessages)
+                    @foreach (var msg in FilteredMessages)
                     {
-                        <div class="list-group-item list-group-item-action flex-column align-items-start @(msg.IsRead ? "" : "fw-bold bg-light")">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">@msg.Subject</h5>
-                                <small class="text-muted">@msg.SentAt.ToLocalTime().ToString("g")</small>
-                            </div>
-                            <p class="mb-1">From: @(msg.Sender?.Email ?? "Unknown")</p>
-                            <small class="text-muted">@msg.Content</small> 
-                             @if (!msg.IsRead)
-                            {
-                                <button class="btn btn-sm btn-outline-secondary float-end" @onclick="() => MarkAsRead(msg.Id)">Mark Read</button>
-                            }
-                        </div>
+                        var counterparty = GetCounterparty(msg);
+                        <button type="button"
+                                class="message-list-item @(SelectedMessageId == msg.Id ? "active" : "") @(!msg.IsRead && ActiveTab == "inbox" ? "unread" : "")"
+                                @onclick="() => SelectMessage(msg.Id)">
+                            <span class="message-list-item__top">
+                                <span class="text-truncate">@counterparty</span>
+                                <small>@msg.SentAt.ToLocalTime().ToString("MMM d")</small>
+                            </span>
+                            <span class="d-block text-truncate">@msg.Subject</span>
+                            <span class="message-preview d-block text-truncate">@msg.Content</span>
+                        </button>
                     }
                 }
                 else
                 {
-                    <div class="empty-state">
-                        <i class="bi bi-inbox"></i>
-                        <h5>Inbox is empty</h5>
-                        <p>You don't have any messages yet.</p>
-                    </div>
+                    <EmptyState Icon="bi bi-inbox"
+                                Title="No messages found"
+                                Message="Try another folder or start a new message." />
                 }
             </div>
-        }
-        else if (ActiveTab == "sent")
-        {
-            <div class="list-group shadow-sm" style="border-radius: var(--border-radius-md); overflow: hidden;">
-                @if (SentMessages.Any())
-                {
-                    @foreach (var msg in SentMessages)
+        </aside>
+
+        <section class="message-thread-panel" aria-label="Message details">
+            @if (ActiveTab == "compose")
+            {
+                <div class="message-thread-header">
+                    <div class="message-person">
+                        <div class="message-avatar" aria-hidden="true">+</div>
+                        <div>
+                            <h2 class="h5 mb-1">New message</h2>
+                            <p class="text-muted small mb-0">Choose a recipient and send a school message.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-compose-form">
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
                     {
-                        <div class="list-group-item list-group-item-action flex-column align-items-start">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">@msg.Subject</h5>
-                                <small class="text-muted">@msg.SentAt.ToLocalTime().ToString("g")</small>
-                            </div>
-                            <p class="mb-1">To: @(msg.Receiver?.Email ?? "Unknown")</p>
-                            <small class="text-muted">@msg.Content</small>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @ErrorMessage
+                            <button type="button" class="btn-close" @onclick="() => ErrorMessage = null" aria-label="Close"></button>
                         </div>
                     }
-                }
-                else
-                {
-                    <div class="empty-state">
-                        <i class="bi bi-send"></i>
-                        <h5>No sent messages</h5>
-                        <p>Messages you send will appear here.</p>
-                    </div>
-                }
-            </div>
-        }
-        else if (ActiveTab == "compose")
-        {
-            <div class="card shadow-sm border-0" style="border-radius: var(--border-radius-lg);">
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">To:</label>
-                        <select class="form-select" @bind="NewMessageReceiverEmail">
-                             <option value="">Select Recipient...</option>
+
+                    <div>
+                        <label class="form-label fw-semibold" for="message-recipient">To</label>
+                        <select id="message-recipient" class="form-select" @bind="NewMessageReceiverEmail">
+                            <option value="">Select Recipient...</option>
                             @foreach (var recipient in AvailableRecipients)
                             {
                                 <option value="@recipient.Email">@recipient.Name (@recipient.Role)</option>
                             }
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Subject:</label>
-                        <input type="text" class="form-control" @bind="NewMessageSubject" />
+                    <div>
+                        <label class="form-label fw-semibold" for="message-subject">Subject</label>
+                        <input id="message-subject" type="text" class="form-control" @bind="NewMessageSubject" />
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Message:</label>
-                        <textarea class="form-control" rows="5" @bind="NewMessageContent"></textarea>
+                    <div>
+                        <label class="form-label fw-semibold" for="message-content">Message</label>
+                        <textarea id="message-content" class="form-control" rows="8" @bind="NewMessageContent"></textarea>
                     </div>
-                    <button class="btn btn-primary" @onclick="SendMessage">
-                        <i class="bi bi-send-fill me-1"></i> Send
-                    </button>
-                    <button class="btn btn-secondary ms-2" @onclick='() => SetTab("inbox")'>Cancel</button>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button class="btn btn-outline" @onclick='() => SetTab("inbox")'>Cancel</button>
+                        <button class="btn btn-primary" @onclick="SendMessage">
+                            <i class="bi bi-send-fill" aria-hidden="true"></i> Send
+                        </button>
+                    </div>
                 </div>
-                @if (!string.IsNullOrEmpty(ErrorMessage))
-                {
-                    <div class="alert alert-danger mt-3 alert-dismissible fade show" role="alert">
-                        @ErrorMessage
-                        <button type="button" class="btn-close" @onclick="() => ErrorMessage = null" aria-label="Close"></button>
+            }
+            else if (SelectedMessage is not null)
+            {
+                var selected = SelectedMessage;
+                <div class="message-thread-header">
+                    <div class="message-person">
+                        <div class="message-avatar" aria-hidden="true">@GetInitials(GetCounterparty(selected))</div>
+                        <div>
+                            <h2 class="h5 mb-1">@GetCounterparty(selected)</h2>
+                            <p class="text-muted small mb-0">@selected.SentAt.ToLocalTime().ToString("f")</p>
+                        </div>
                     </div>
-                }
-            </div>
-        }
-    }
-</div>
+                    @if (ActiveTab == "inbox" && !selected.IsRead)
+                    {
+                        <button class="btn btn-sm btn-outline" @onclick="() => MarkAsRead(selected.Id)">Mark read</button>
+                    }
+                </div>
+                <div class="message-thread-body">
+                    <div class="message-bubble">
+                        <div class="text-muted small fw-semibold mb-2">@selected.Subject</div>
+                        <p class="mb-0">@selected.Content</p>
+                    </div>
+                </div>
+                <div class="message-composer">
+                    <button class="btn btn-primary" @onclick='() => StartReply(selected)'>
+                        <i class="bi bi-reply" aria-hidden="true"></i> Reply
+                    </button>
+                </div>
+            }
+            else
+            {
+                <EmptyState Icon="bi bi-chat-dots"
+                            Title="Select a message"
+                            Message="Choose a conversation from the list or create a new message." />
+            }
+        </section>
+    </div>
+}
 
 @code {
     [SupplyParameterFromQuery]
@@ -158,6 +166,8 @@
     private string ActiveTab = "inbox";
     private bool IsLoading = true;
     private string CurrentUserId = "";
+    private string MessageSearch = "";
+    private int? SelectedMessageId;
     
     private List<Message> InboxMessages = new();
     private List<Message> SentMessages = new();
@@ -168,6 +178,27 @@
     private string NewMessageContent = "";
     
     private List<RecipientOption> AvailableRecipients = new();
+
+    private IEnumerable<Message> CurrentMessages => ActiveTab == "sent" ? SentMessages : InboxMessages;
+
+    private IEnumerable<Message> FilteredMessages
+    {
+        get
+        {
+            var messages = CurrentMessages;
+            if (!string.IsNullOrWhiteSpace(MessageSearch))
+            {
+                messages = messages.Where(m =>
+                    m.Subject.Contains(MessageSearch, StringComparison.OrdinalIgnoreCase) ||
+                    m.Content.Contains(MessageSearch, StringComparison.OrdinalIgnoreCase) ||
+                    GetCounterparty(m).Contains(MessageSearch, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return messages;
+        }
+    }
+
+    private Message? SelectedMessage => CurrentMessages.FirstOrDefault(m => m.Id == SelectedMessageId);
 
     protected override async Task OnInitializedAsync()
     {
@@ -188,25 +219,10 @@
         if (!string.IsNullOrEmpty(ComposeTo))
         {
              SetTab("compose");
-
-             if (int.TryParse(ComposeTo, out int teacherId))
-             {
-                 var teacher = await TeacherService.GetTeacherByIdAsync(teacherId);
-                 if (teacher != null)
-                 {
-                    // Attempt to find user
-                    // TeacherViewModel doesn't have UserId, we need to fetch entity or look up
-                    var teacherEntity = await TeacherService.GetTeacherByUserIdAsync(""); // No, this finds BY userId
-
-                    // We need GetTeacherById -> Teacher -> UserId -> User -> Email
-                    // The service GetTeacherByIdAsync returns ViewModel.
-                    // Let's rely on finding by name in available recipients for now, or fetch all users?
-
-                    // Better: Loop through available recipients and match name?
-                    // Name matching is weak.
-                    // Let's just fix the dropdown to list all Teachers properly first.
-                 }
-             }
+        }
+        else
+        {
+            SelectFirstAvailableMessage();
         }
         
         IsLoading = false;
@@ -216,6 +232,10 @@
     {
         InboxMessages = await MessageService.GetMessagesForUserAsync(CurrentUserId);
         SentMessages = await MessageService.GetSentMessagesAsync(CurrentUserId);
+        if (ActiveTab != "compose" && SelectedMessageId is null)
+        {
+            SelectFirstAvailableMessage();
+        }
     }
 
     private async Task LoadRecipients(ClaimsPrincipal currentUser)
@@ -259,12 +279,42 @@
     private void SetTab(string tab)
     {
         ActiveTab = tab;
+        ErrorMessage = null;
+        if (tab != "compose")
+        {
+            SelectFirstAvailableMessage();
+        }
+    }
+
+    private void SelectMessage(int id)
+    {
+        SelectedMessageId = id;
+        if (ActiveTab == "compose")
+        {
+            ActiveTab = "inbox";
+        }
+    }
+
+    private void SelectFirstAvailableMessage()
+    {
+        SelectedMessageId = CurrentMessages.FirstOrDefault()?.Id;
     }
 
     private async Task MarkAsRead(int id)
     {
         await MessageService.MarkMessageAsReadAsync(id);
         await LoadMessages();
+    }
+
+    private void StartReply(Message message)
+    {
+        var recipient = ActiveTab == "sent" ? message.Receiver : message.Sender;
+        NewMessageReceiverEmail = recipient?.Email ?? "";
+        NewMessageSubject = message.Subject.StartsWith("Re:", StringComparison.OrdinalIgnoreCase)
+            ? message.Subject
+            : $"Re: {message.Subject}";
+        NewMessageContent = "";
+        SetTab("compose");
     }
 
     private async Task SendMessage()
@@ -279,18 +329,43 @@
             NewMessageReceiverEmail = "";
             SetTab("sent");
             await LoadMessages();
+            SelectFirstAvailableMessage();
         }
         catch (Exception ex)
         {
-            // Show error (alert)
-            // Ideally we should use a toast service or similar. For now, we don't have a UI element for errors.
-            // Let's at least log it properly if we had a logger, but in Blazor Wasm/Server component we can inject ILogger.
-            // I'll add an alert box for the user.
             ErrorMessage = $"Error sending message: {ex.Message}";
         }
     }
 
     private string? ErrorMessage;
+
+    private string GetCounterparty(Message message)
+    {
+        var user = ActiveTab == "sent" ? message.Receiver : message.Sender;
+        return GetDisplayName(user);
+    }
+
+    private static string GetDisplayName(User? user)
+    {
+        if (user is null)
+        {
+            return "Unknown user";
+        }
+
+        var name = $"{user.FirstName} {user.LastName}".Trim();
+        return string.IsNullOrWhiteSpace(name) ? user.Email ?? "Unknown user" : name;
+    }
+
+    private static string GetInitials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0)
+        {
+            return "?";
+        }
+
+        return string.Concat(parts.Take(2).Select(p => char.ToUpperInvariant(p[0])));
+    }
     
     public class RecipientOption
     {

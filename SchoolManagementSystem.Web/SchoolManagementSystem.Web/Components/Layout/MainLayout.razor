@@ -7,8 +7,7 @@
 @inject NavigationManager NavigationManager
 
 <div class="app-container">
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
+    <aside class="sidebar @SidebarCssClass" id="sidebar" aria-label="Primary navigation">
         <div class="sidebar-header">
             <div class="brand-logo">
                 <i class="bi bi-mortarboard-fill text-primary"></i>
@@ -18,8 +17,8 @@
         
         <NavMenu />
         
-        <div class="p-3 border-top border-light">
-             <div class="d-flex align-items-center p-2 rounded hover-bg-light">
+        <div class="sidebar-user-card">
+             <div class="d-flex align-items-center">
                  <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 0.8rem;">
                      <i class="bi bi-person"></i>
                  </div>
@@ -37,12 +36,11 @@
                  </div>
              </div>
         </div>
-    </div>
+    </aside>
 
-    <!-- Main Content -->
     <div class="main-content-wrapper">
         <header class="top-bar sticky-top">
-             <button class="btn btn-outline d-lg-none" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation">
+             <button class="btn btn-outline d-lg-none" type="button" @onclick="ToggleSidebar" aria-label="Toggle navigation" aria-controls="sidebar" aria-expanded="@IsSidebarOpen">
                 <i class="bi bi-list fs-4"></i>
             </button>
             
@@ -74,6 +72,10 @@
                          <button type="submit" class="search-submit">Search</button>
                      </form>
                  </div>
+
+                 <a href="search" class="btn btn-outline d-md-none" aria-label="Open search">
+                     <i class="bi bi-search"></i>
+                 </a>
 
                 <!-- Notification Dropdown -->
                 <div class="dropdown">
@@ -138,14 +140,11 @@
             </div>
         </main>
     </div>
-    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
-</div>
-
-<script>
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('show');
+    @if (IsSidebarOpen)
+    {
+        <button type="button" class="sidebar-overlay" @onclick="CloseSidebar" aria-label="Close navigation"></button>
     }
-</script>
+</div>
 
 @code {
     private string SearchQuery = "";
@@ -153,6 +152,9 @@
     private int UnreadCount = 0;
     private List<SchoolManagementSystem.Web.Models.Message> RecentMessages = new();
     private bool _notificationsOpen = false;
+    private bool IsSidebarOpen;
+
+    private string SidebarCssClass => IsSidebarOpen ? "show" : "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -188,6 +190,10 @@
         _notificationsOpen = !_notificationsOpen;
         StateHasChanged();
     }
+
+    private void ToggleSidebar() => IsSidebarOpen = !IsSidebarOpen;
+
+    private void CloseSidebar() => IsSidebarOpen = false;
 
     private string GetTimeAgo(DateTime date)
     {

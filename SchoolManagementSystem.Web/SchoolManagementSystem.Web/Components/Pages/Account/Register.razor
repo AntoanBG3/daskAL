@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Authorization
 @inject IAuthService AuthService
 @inject NavigationManager NavigationManager
+@inject ILogger<Register> Logger
 @attribute [AllowAnonymous]
 
 <PageTitle>Register - daskAL</PageTitle>
@@ -139,8 +140,9 @@
                 Errors = errors.ToList();
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Registration failed for {Email}.", TargetModel.Email);
             Errors.Add("An unexpected error occurred.");
         }
         finally

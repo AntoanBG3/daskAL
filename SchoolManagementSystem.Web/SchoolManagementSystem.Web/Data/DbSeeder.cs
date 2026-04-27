@@ -10,7 +10,6 @@ namespace SchoolManagementSystem.Web.Data
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
-            var dbContext = serviceProvider.GetRequiredService<SchoolDbContext>();
 
             string[] roleNames = { "Admin", "Teacher", "Student" };
 
